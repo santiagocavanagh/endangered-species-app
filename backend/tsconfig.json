@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    /* Configuración de Entorno y Node.js */
+    "target": "ES2021",                      // Versión de JavaScript estable para Node moderno
+    "module": "CommonJS",                    // El estándar más compatible con TypeORM y Express
+    "lib": ["esnext"],                       // Permite usar las últimas funciones de JS
+    "types": ["node"],                       // Reconoce los tipos nativos de Node.js
+    "moduleResolution": "node",              // Ayuda a encontrar librerías en node_modules
+
+    /* Rutas de Archivos */
+    "rootDir": "./src",                      // Tu código fuente estará en la carpeta /src
+    "outDir": "./dist",                      // El código compilado irá a /dist
+
+    /* Opciones Obligatorias para TypeORM */
+    "experimentalDecorators": true,          // Habilita el uso de @Entity, @Column, etc.
+    "emitDecoratorMetadata": true,           // Permite a TypeORM saber si un campo es string, number, etc.
+    "strictPropertyInitialization": false,   // Evita errores cuando las clases de TypeORM no tienen constructor
+
+    /* Interoperabilidad y Seguridad */
+    "esModuleInterop": true,                 // Permite importar librerías CommonJS como si fueran ES Modules
+    "skipLibCheck": true,                    // Ignora errores de tipos en librerías externas para ir más rápido
+    "forceConsistentCasingInFileNames": true, // Evita problemas si programas en Windows y subes a Linux
+    
+    /* Calidad de Código */
+    "strict": true,                          // Activa todas las comprobaciones estrictas
+    "sourceMap": true,                       // Ayuda a depurar (debug) el código original desde el compilado
+    "declaration": true                      // Genera archivos de definición .d.ts
+  },
+  "include": ["src/**/*"],                   // Solo compila lo que esté dentro de /src
+  "exclude": ["node_modules", "**/*.spec.ts"] // Ignora librerías y archivos de prueba
+}
