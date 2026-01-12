@@ -1,12 +1,15 @@
-import { useState, useMemo } from "react";
-import { Header } from "./components/Header";
-import { FilterBar, Filters } from "./components/FilterBar";
-import { SpeciesCard } from "./components/SpeciesCard";
-import { speciesData } from "./data/speciesData";
+import { useEffect, useState, useMemo } from "react";
+import { fetchSpecies } from "./services/api";
+import { Header } from "./app/components/Header";
+import { FilterBar, Filters } from "./app/components/FilterBar";
+import { SpeciesCard, type Species } from "./app/components/SpeciesCard";
 
 export default function App() {
+  const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [activeCategory, setActiveCategory] = useState<"animal" | "planta" | "hongo">("animal");
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  
   const [filters, setFilters] = useState<Filters>({
     search: "",
     status: "all",
@@ -14,7 +17,15 @@ export default function App() {
     region: "all",
   });
 
-  const toggleFavorite = (id: string) => {
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchSpecies();
+      setAllSpecies(data);
+    };
+    loadData();
+  }, []);
+
+  const toggleFavorite = (id: number) => {
     setFavorites((prev) => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(id)) {
@@ -27,11 +38,9 @@ export default function App() {
   };
 
   const filteredSpecies = useMemo(() => {
-    return speciesData.filter((species) => {
-      // Filtrar por categoría
+    return allSpecies.filter((species) => {
       if (species.category !== activeCategory) return false;
 
-      // Filtrar por búsqueda
       if (
         filters.search &&
         !species.name.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -40,12 +49,10 @@ export default function App() {
         return false;
       }
 
-      // Filtrar por estado
       if (filters.status !== "all" && species.status !== filters.status) {
         return false;
       }
 
-      // Filtrar por hábitat
       if (
         filters.habitat !== "all" &&
         !species.habitat.toLowerCase().includes(filters.habitat.toLowerCase())
@@ -53,25 +60,32 @@ export default function App() {
         return false;
       }
 
-      // Filtrar por región
-      if (
-        filters.region !== "all" &&
-        !species.region.toLowerCase().includes(filters.region.toLowerCase())
-      ) {
-        return false;
+      if (filters.region !== "all") {
+        const speciesRegion = species.region
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    
+        const filterRegion = filters.region
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+        if (!speciesRegion.includes(filterRegion)) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [activeCategory, filters]);
+  }, [allSpecies, activeCategory, filters]);
 
   return (
     <div className="size-full flex flex-col bg-gray-50">
       <Header
         activeCategory={activeCategory}
         onCategoryChange={(category) => {
-          setActiveCategory(category);
-          // Resetear filtros al cambiar de categoría
+          setActiveCategory(category as "animal" | "planta" | "hongo");
           setFilters({
             search: "",
             status: "all",
@@ -90,7 +104,7 @@ export default function App() {
           {filteredSpecies.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">
-                No se encontraron especies con los filtros seleccionados.
+                Sin Resultados para èsta Bùsqueda.
               </p>
             </div>
           ) : (

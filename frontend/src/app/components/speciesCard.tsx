@@ -3,7 +3,7 @@ import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 
 export interface Species {
-  id: string;
+  id: number;
   name: string;
   scientificName: string;
   status: "critico" | "peligro" | "vulnerable";
@@ -17,7 +17,7 @@ export interface Species {
 interface SpeciesCardProps {
   species: Species;
   isFavorite: boolean;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: number) => void;
 }
 
 export function SpeciesCard({

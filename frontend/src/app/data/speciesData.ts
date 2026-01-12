@@ -3,7 +3,7 @@ import { Species } from "../components/SpeciesCard";
 export const speciesData: Species[] = [
   // Animales
   {
-    id: "1",
+    id: 1,
     name: "Tigre de Bengala",
     scientificName: "Panthera tigris tigris",
     status: "peligro",
@@ -15,7 +15,7 @@ export const speciesData: Species[] = [
     category: "animal",
   },
   {
-    id: "2",
+    id: 2,
     name: "Oso Panda Gigante",
     scientificName: "Ailuropoda melanoleuca",
     status: "vulnerable",
@@ -27,7 +27,7 @@ export const speciesData: Species[] = [
     category: "animal",
   },
   {
-    id: "3",
+    id: 3,
     name: "Elefante Africano",
     scientificName: "Loxodonta africana",
     status: "peligro",
@@ -39,7 +39,7 @@ export const speciesData: Species[] = [
     category: "animal",
   },
   {
-    id: "4",
+    id: 4,
     name: "Gorila de Montaña",
     scientificName: "Gorilla beringei beringei",
     status: "critico",
@@ -51,7 +51,7 @@ export const speciesData: Species[] = [
     category: "animal",
   },
   {
-    id: "5",
+    id: 5,
     name: "Tortuga Marina",
     scientificName: "Cheloniidae",
     status: "critico",
@@ -63,7 +63,7 @@ export const speciesData: Species[] = [
     category: "animal",
   },
   {
-    id: "6",
+    id: 6,
     name: "Rinoceronte de Java",
     scientificName: "Rhinoceros sondaicus",
     status: "critico",
@@ -77,7 +77,7 @@ export const speciesData: Species[] = [
 
   // Plantas
   {
-    id: "7",
+    id: 7,
     name: "Orquídea de Madagascar",
     scientificName: "Angraecum sesquipedale",
     status: "peligro",
@@ -89,7 +89,7 @@ export const speciesData: Species[] = [
     category: "planta",
   },
   {
-    id: "8",
+    id: 8,
     name: "Cactus Barril Dorado",
     scientificName: "Echinocactus grusonii",
     status: "vulnerable",
@@ -101,7 +101,7 @@ export const speciesData: Species[] = [
     category: "planta",
   },
   {
-    id: "9",
+    id: 9,
     name: "Dionea Atrapamoscas",
     scientificName: "Dionaea muscipula",
     status: "vulnerable",
@@ -113,7 +113,7 @@ export const speciesData: Species[] = [
     category: "planta",
   },
   {
-    id: "10",
+    id: 10,
     name: "Baobab de Grandidier",
     scientificName: "Adansonia grandidieri",
     status: "peligro",
@@ -125,7 +125,7 @@ export const speciesData: Species[] = [
     category: "planta",
   },
   {
-    id: "11",
+    id: 11,
     name: "Welwitschia",
     scientificName: "Welwitschia mirabilis",
     status: "vulnerable",
@@ -137,7 +137,7 @@ export const speciesData: Species[] = [
     category: "planta",
   },
   {
-    id: "12",
+    id: 12,
     name: "Cycas Revoluta",
     scientificName: "Cycas revoluta",
     status: "peligro",
@@ -151,7 +151,7 @@ export const speciesData: Species[] = [
 
   // Hongos
   {
-    id: "13",
+    id: 13,
     name: "Hongo Portobello Silvestre",
     scientificName: "Agaricus bisporus",
     status: "vulnerable",
@@ -163,7 +163,7 @@ export const speciesData: Species[] = [
     category: "hongo",
   },
   {
-    id: "14",
+    id: 14,
     name: "Matsutake",
     scientificName: "Tricholoma matsutake",
     status: "critico",
@@ -175,7 +175,7 @@ export const speciesData: Species[] = [
     category: "hongo",
   },
   {
-    id: "15",
+    id: 15,
     name: "Trufa Blanca",
     scientificName: "Tuber magnatum",
     status: "peligro",
@@ -187,7 +187,7 @@ export const speciesData: Species[] = [
     category: "hongo",
   },
   {
-    id: "16",
+    id: 16,
     name: "Cantharellus californicus",
     scientificName: "Cantharellus californicus",
     status: "vulnerable",
@@ -199,7 +199,7 @@ export const speciesData: Species[] = [
     category: "hongo",
   },
   {
-    id: "17",
+    id: 17,
     name: "Hongo Coral",
     scientificName: "Ramaria botrytis",
     status: "vulnerable",
@@ -211,7 +211,7 @@ export const speciesData: Species[] = [
     category: "hongo",
   },
   {
-    id: "18",
+    id: 18,
     name: "Boleto del Diablo",
     scientificName: "Rubroboletus satanas",
     status: "peligro",
