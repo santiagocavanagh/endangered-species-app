@@ -1,9 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
-import { fetchSpecies } from "./services/api";
+import { api } from "./services/api";
 import { Header } from "./app/components/Header";
 import { FilterBar, Filters } from "./app/components/FilterBar";
-import { SpeciesCard, type Species } from "./app/components/SpeciesCard";
-
+import { SpeciesCard, type Species } from "../src/app/components/speciesCard";
 export default function App() {
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [activeCategory, setActiveCategory] = useState<"animal" | "planta" | "hongo">("animal");
@@ -19,7 +18,7 @@ export default function App() {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchSpecies();
+      const data = await api.fetchSpecies();
       setAllSpecies(data);
     };
     loadData();

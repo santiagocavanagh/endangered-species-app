@@ -1,6 +1,7 @@
-import { Star, MapPin, AlertTriangle } from "lucide-react";
+import { Star, MapPin, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { useAuth } from "../../context/authContext";
 
 export interface Species {
   id: number;
@@ -18,13 +19,19 @@ interface SpeciesCardProps {
   species: Species;
   isFavorite: boolean;
   onToggleFavorite: (id: number) => void;
+  onEdit?: (species: Species) => void;
+  onDelete?: (id: number) => void; 
 }
 
 export function SpeciesCard({
   species,
   isFavorite,
   onToggleFavorite,
+  onEdit,
+  onDelete,
 }: SpeciesCardProps) {
+  
+  const { isAdmin } = useAuth();
   const statusConfig = {
     critico: {
       label: "En peligro crítico",
@@ -41,13 +48,33 @@ export function SpeciesCard({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow group relative">
       <div className="relative h-48 overflow-hidden bg-gray-200">
         <img
           src={species.imageUrl}
           alt={species.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
+        
+        {isAdmin && (
+          <div className="absolute top-3 left-3 flex gap-2 z-10">
+            <button
+              onClick={() => onEdit?.(species)}
+              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-md transition-colors"
+              title="Editar especie"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onDelete?.(species.id)}
+              className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-md transition-colors"
+              title="Eliminar especie"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         <button
           onClick={() => onToggleFavorite(species.id)}
           className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-colors"
@@ -59,6 +86,7 @@ export function SpeciesCard({
             }`}
           />
         </button>
+
         <div className="absolute bottom-3 left-3">
           <Badge className={`${statusConfig[species.status].color} border`}>
             <AlertTriangle className="h-3 w-3 mr-1" />
