@@ -5,9 +5,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const router = Router();
-const JWT_SECRET = "tu_clave_secreta_super_segura"; // En producción va en .env
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
-// REGISTRO
 router.post("/register", async (req, res) => {
   const { email, password, role } = req.body;
   const userRepository = AppDataSource.getRepository(User);
@@ -26,7 +25,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// LOGIN
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const userRepository = AppDataSource.getRepository(User);
@@ -36,7 +34,6 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Credenciales inválidas" });
   }
 
-  // Generamos el token con el ID y el ROL
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
     expiresIn: "1d",
   });

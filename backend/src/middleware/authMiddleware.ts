@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "tu_clave_secreta_super_segura";
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const authenticateToken = (
   req: any,
@@ -9,7 +9,7 @@ export const authenticateToken = (
   next: NextFunction,
 ) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN"
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token)
     return res.status(401).json({ error: "Acceso denegado. No hay token." });
@@ -18,8 +18,8 @@ export const authenticateToken = (
     if (err)
       return res.status(403).json({ error: "Token inválido o expirado." });
 
-    req.user = user; // Adjunta info usuario a request
-    next(); // Continuamos al siguiente middleware o ruta
+    req.user = user;
+    next();
   });
 };
 

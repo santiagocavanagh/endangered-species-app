@@ -3,6 +3,7 @@ import { api } from "./services/api";
 import { Header } from "./app/components/Header";
 import { FilterBar, Filters } from "./app/components/FilterBar";
 import { SpeciesCard, type Species } from "../src/app/components/speciesCard";
+
 export default function App() {
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [activeCategory, setActiveCategory] = useState<"animal" | "planta" | "hongo">("animal");

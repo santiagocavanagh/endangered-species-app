@@ -8,6 +8,30 @@ export class speciesController {
     const species = await speciesRepository.find();
     return res.json(species);
   }
+  static async getOne(req: Request, res: Response) {
+    const { id } = req.params;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    const speciesRepository = AppDataSource.getRepository(Species);
+
+    try {
+      const animal = await speciesRepository.findOneBy({
+        id: parseInt(id, 10),
+      });
+
+      if (!animal) {
+        return res.status(404).json({ message: "Especie no encontrada" });
+      }
+
+      return res.json(animal);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error al obtener la especie" });
+    }
+  }
 
   static create = async (req: Request, res: Response) => {
     try {
