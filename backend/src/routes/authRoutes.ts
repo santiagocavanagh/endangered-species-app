@@ -28,7 +28,6 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const userRepository = AppDataSource.getRepository(User);
-
   const user = await userRepository.findOneBy({ email });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).json({ error: "Credenciales inválidas" });
