@@ -3,6 +3,7 @@ import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "../../context/AuthContext";
 import { LoginModal } from "./login-modal";
+import { ProfileModal } from "./profile-modal";
 
 interface HeaderProps {
   activeCategory: "animal" | "planta" | "hongo";
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
   const { user, logout, isAdmin } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false); //abrir el modal
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const categories = [
     { id: "animal" as const, label: "Animales" },
@@ -23,7 +25,7 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
     <header className="w-full border-b bg-white px-6 py-4 sticky top-0 z-50">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         
-        {/* Logo y Categorías */}
+        {/* Seccion Categorías */}
         <div className="flex items-center gap-8">
           <h1 className="text-xl font-bold text-green-900 tracking-tight">
             EcoGuard
@@ -45,44 +47,48 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
           </nav>
         </div>
 
-        {/* Sección de Usuario */}
-        <div className="flex items-center gap-4">
+        {/* Seccion Usuario */}
+        <div>
           {user ? (
-            /* Login */
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold leading-none text-gray-900">
-                  {isAdmin ? "Admin" : "Explorador"}
-                </p>
-                <p className="text-[11px] text-gray-500 mt-1">{user.email}</p>
-              </div>
-              <Avatar className="h-9 w-9 border border-emerald-100">
-                <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                  {user.email[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <button
-                onClick={logout}
-                className="p-2 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                title="Cerrar sesión"
-              >
-                <LogOut size={20} />
+            <div className="flex items-center gap-4">
+              {/* Boton dinamico de perfil */}
+              <button onClick={() => setIsProfileOpen(true)} 
+              className="flex items-center gap-2 group transition-all">
+                <Avatar className="w-8 h-8 bg-emerald-100 border border-emerald-200">
+                  <AvatarFallback className="text-emerald-700 font-bold text-xs">
+                    {/* Muestra la inicial del nombre o del email */}
+                      {(user.name?.[0] || user.email[0]).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-start leading-none hidden sm:flex">
+                  <span className="text-gray-900 font-semibold text-sm group-hover:text-emerald-600 transition-colors">
+                    {user.name || user.email.split('@')[0]}
+                  </span>
+                  <span className="text-[10px] text-gray-500 uppercase mt-0.5">
+                    {isAdmin ? "Admin" : "Explorador"}
+                  </span>
+                </div>
+              </button>
+              
+              {/* Botón Logout */}
+              <button onClick={logout}
+              className="p-2 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+              title="Cerrar sesión">
+                <LogOut className="w-5 h-5" />
               </button>
             </div>
           ) : (
-            /* Logout */
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-800 transition-colors"
-            >
-              <User size={16} />
-              Iniciar Sesión
-            </button>
+          <button onClick={() => setIsLoginOpen(true)}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 
+          transition-all shadow-sm font-medium text-sm">
+            Iniciar Sesión
+          </button>
           )}
         </div>
       </div>
-
+        
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </header>
-  );
-}
+    );
+  }

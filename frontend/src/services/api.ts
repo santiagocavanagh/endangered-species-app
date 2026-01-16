@@ -23,24 +23,6 @@ export const api = {
     }
   },
 
-  login: async (credentials: {
-    email: string;
-    password: string;
-  }): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-      if (!res.ok) throw new Error("Credenciales incorrectas");
-      return await res.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  },
-
   createSpecies: async (data: any): Promise<any> => {
     try {
       const res = await fetch(`${API_URL}/species`, {
@@ -80,5 +62,47 @@ export const api = {
       console.error(error);
       return { error: "No se pudo eliminar" };
     }
+  },
+
+  login: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<any> => {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      if (!res.ok) throw new Error("Credenciales incorrectas");
+      return await res.json();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (data: { name?: string; password?: string }) => {
+    const token = localStorage.getItem("token"); // Recuperamos el token del login
+
+    const response = await fetch(
+      "http://localhost:3000/api/auth/update-profile",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Aquí enviamos el token al middleware
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Error al actualizar el perfil");
+    }
+
+    return result;
   },
 };

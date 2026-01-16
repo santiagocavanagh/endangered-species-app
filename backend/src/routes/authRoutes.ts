@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AppDataSource } from "../data-source";
 import { User } from "../entities/user";
+import { authenticateToken } from "../middleware/authMiddleware";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -37,6 +38,37 @@ router.post("/login", async (req, res) => {
     expiresIn: "1d",
   });
   res.json({ token, role: user.role, email: user.email });
+});
+
+router.put("/update-profile", authenticateToken, async (req, res) => {
+  const { name, password } = req.body;
+  const userId = (req as any).user.id;
+
+  try {
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id: userId });
+
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    if (name) user.name = name;
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await userRepository.save(user);
+    res.json({
+      message: "Perfil actualizado correctamente",
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
 export default router;
