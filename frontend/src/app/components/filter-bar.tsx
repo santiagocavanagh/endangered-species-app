@@ -1,11 +1,5 @@
 import { Filter } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Input } from "./ui/input";
 
 interface FilterBarProps {
@@ -32,7 +26,6 @@ export function FilterBar({
     { value: "peligro", label: "En peligro" },
     { value: "vulnerable", label: "Vulnerable" },
   ];
-
   const habitatOptions = {
     animal: [
       { value: "all", label: "Todos los hábitats" },
@@ -56,7 +49,6 @@ export function FilterBar({
       { value: "montaña", label: "Montaña" },
     ],
   };
-
   const regionOptions = [
     { value: "all", label: "Todas las regiones" },
     { value: "america", label: "América" },

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "./services/api";
 import { Header } from "./app/components/header";
-import { FilterBar, Filters } from "./app/components/FilterBar";
+import { FilterBar, Filters } from "./app/components/Filter-bar";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 
 export default function App() {
