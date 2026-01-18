@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "./services/api";
-import { Header } from "./app/components/Header";
+import { Header } from "./app/components/header";
 import { FilterBar, Filters } from "./app/components/FilterBar";
-import { SpeciesCard, type Species } from "../src/app/components/speciesCard";
+import { SpeciesCard, type Species } from "./app/components/species-card";
 
 export default function App() {
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);

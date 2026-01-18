@@ -1,4 +1,4 @@
-import { Species } from "../components/SpeciesCard";
+import { Species } from "../components/species-card";
 
 export const speciesData: Species[] = [
   // Animales

@@ -72,7 +72,7 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
               
               {/* Botón Logout */}
               <button onClick={logout}
-              className="p-2 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+              className="p-2 rounded-full hover:bg-yellow-90 text-gray-400 hover:text-green-600 transition-colors"
               title="Cerrar sesión">
                 <LogOut className="w-5 h-5" />
               </button>
