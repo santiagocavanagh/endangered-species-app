@@ -69,24 +69,44 @@ export default function App() {
     }
   };
 
-  const filteredSpecies = useMemo(() => {
-    return allSpecies.filter((species) => {
-      if (species.category !== activeCategory) return false;
-      if (filters.search && !species.name.toLowerCase().includes(filters.search.toLowerCase()) && !species.scientificName.toLowerCase().includes(filters.search.toLowerCase())) return false;
-      if (filters.status !== "all" && species.status !== filters.status) return false;
-      if (filters.habitat !== "all" && !species.habitat.toLowerCase().includes(filters.habitat.toLowerCase())) return false;
-      if (filters.region !== "all") {
-        const speciesRegion = species.region.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const filterRegion = filters.region.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (!speciesRegion.includes(filterRegion)) return false;
-      }
-      return true;
-    });
-  }, [allSpecies, activeCategory, filters]);
-
-  const favoriteSpeciesList = useMemo(() => {
+const baseSpecies = useMemo(() => {
+  if (view === "favorites") {
     return allSpecies.filter(s => favorites.has(s.id));
-  }, [allSpecies, favorites]);
+  }
+  return allSpecies;
+}, [allSpecies, favorites, view]);
+
+const displaySpecies = useMemo(() => {
+  return baseSpecies.filter((species) => {
+    if (species.category !== activeCategory) return false;
+      if (
+      filters.search &&
+      !species.name.toLowerCase().includes(filters.search.toLowerCase()) &&
+      !species.scientificName.toLowerCase().includes(filters.search.toLowerCase())
+    ) {
+      return false;
+    }
+      if (filters.status !== "all" && species.status !== filters.status) {
+      return false;
+    } if (
+      filters.habitat !== "all" &&
+      !species.habitat.toLowerCase().includes(filters.habitat.toLowerCase())
+    ) {
+      return false;
+    }
+      if (filters.region !== "all") {
+      const speciesRegion = species.region.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const filterRegion = filters.region.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (!speciesRegion.includes(filterRegion)) return false;
+    }
+      return true;
+  });
+}, [baseSpecies, activeCategory, filters]);
+
+
+const favoriteSpeciesList = useMemo(() => {
+  return allSpecies.filter(s => favorites.has(s.id));
+}, [allSpecies, favorites]);
 
   return (
     <div className="size-full flex flex-col bg-gray-50">
@@ -131,44 +151,33 @@ export default function App() {
               </button>
             )}
           </div>
-
-          {view === "all" ? (
-            filteredSpecies.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-400 text-xl font-light">No se encontraron especies con estos filtros.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredSpecies.map((s) => (
-                  <SpeciesCard
-                    key={s.id}
-                    species={s}
-                    isFavorite={favorites.has(s.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onEdit={handleOpenEdit}
-                  />
-                ))}
-              </div>
-            )
+          {displaySpecies.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+              {view === "favorites" ? (
+                <>
+                  <Heart size={48} className="mx-auto text-gray-200 mb-4" />
+                  <p className="text-gray-400 text-xl font-light">
+                    No tienes favoritos en esta categoría o filtro.
+                  </p>
+                </>
+              ) : (
+                <p className="text-gray-400 text-xl font-light">
+                  No se encontraron especies con estos filtros.
+                </p>
+              )}
+            </div>
           ) : (
-            favoriteSpeciesList.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-                <Heart size={48} className="mx-auto text-gray-200 mb-4" />
-                <p className="text-gray-400 text-xl font-light">Aún no tienes especies favoritas guardadas.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {favoriteSpeciesList.map((s) => (
-                  <SpeciesCard
-                    key={s.id}
-                    species={s}
-                    isFavorite={true}
-                    onToggleFavorite={toggleFavorite}
-                    onEdit={handleOpenEdit}
-                  />
-                ))}
-              </div>
-            )
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displaySpecies.map((s) => (
+                <SpeciesCard
+                  key={s.id}
+                  species={s}
+                  isFavorite={favorites.has(s.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onEdit={handleOpenEdit}
+                />
+              ))}
+            </div>
           )}
         </div>
       </main>
