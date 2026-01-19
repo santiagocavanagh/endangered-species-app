@@ -105,4 +105,39 @@ export const api = {
 
     return result;
   },
+
+  getFavorites: async (): Promise<any> => {
+    try {
+      const res = await fetch(`${API_URL}/favorites`, {
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      return { error: "No se pudieron cargar favoritos" };
+    }
+  },
+
+  addFavorite: async (speciesId: number): Promise<any> => {
+    try {
+      const res = await fetch(`${API_URL}/favorites/${speciesId}`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      return { error: "No se pudo agregar a favoritos" };
+    }
+  },
+
+  removeFavorite: async (speciesId: number): Promise<any> => {
+    try {
+      const res = await fetch(`${API_URL}/favorites/${speciesId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      return { error: "No se pudo quitar de favoritos" };
+    }
+  },
 };

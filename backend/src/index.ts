@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
 import authRoutes from "./routes/authRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
 import speciesRoutes from "./routes/speciesRoutes";
 
 const app = express();
@@ -11,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/favorites", favoriteRoutes);
 app.use("/api/species", speciesRoutes);
 
 AppDataSource.initialize()
