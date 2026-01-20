@@ -1,4 +1,4 @@
-import { AppDataSource } from "../config/data-source";
+import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species";
 
 const seed = async () => {

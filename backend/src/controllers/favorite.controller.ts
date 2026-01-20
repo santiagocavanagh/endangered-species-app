@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AppDataSource } from "../config/data-source";
+import { AppDataSource } from "../config/data.source";
 import { Favorite } from "../entities/favorites";
 import { Species } from "../entities/species";
 import { User } from "../entities/user";

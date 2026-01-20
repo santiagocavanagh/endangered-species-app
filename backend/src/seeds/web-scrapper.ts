@@ -1,4 +1,4 @@
-import { ENV } from "./config/env.config";
+import { ENV } from "../config/env.config";
 
 export const obtenerDatosIUCN = async () => {
   const iucntoken = ENV.IUCN_TOKEN;

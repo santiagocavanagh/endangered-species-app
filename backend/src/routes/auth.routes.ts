@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { AppDataSource } from "../config/data-source";
+import { AppDataSource } from "../config/data.source";
 import { User } from "../entities/user";
-import { authenticateToken } from "../middleware/authMiddleware";
+import { authenticateToken } from "../middleware/auth.middleware";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 

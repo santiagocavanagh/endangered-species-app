@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AppDataSource } from "../config/data-source";
+import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species";
 
 export class speciesController {

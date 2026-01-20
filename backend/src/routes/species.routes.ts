@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authenticateToken, isAdmin } from "../middleware/authMiddleware";
-import { speciesController } from "../controllers/speciesController";
+import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
+import { speciesController } from "../controllers/species.controller";
 
 const router = Router();
 

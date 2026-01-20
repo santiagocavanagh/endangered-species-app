@@ -2,10 +2,10 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { AppDataSource } from "./config/data-source";
-import authRoutes from "./routes/authRoutes";
-import favoriteRoutes from "./routes/favoriteRoutes";
-import speciesRoutes from "./routes/speciesRoutes";
+import { AppDataSource } from "./config/data.source";
+import authRoutes from "./routes/auth.routes";
+import favoriteRoutes from "./routes/favorite.routes";
+import speciesRoutes from "./routes/species.routes";
 
 const app = express();
 
