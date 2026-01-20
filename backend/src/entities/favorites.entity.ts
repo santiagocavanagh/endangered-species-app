@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Unique } from "typeorm";
-import { User } from "./user";
-import { Species } from "./species";
+import { User } from "./user.entity";
+import { Species } from "./species.entity";
 
 @Entity("favorites")
 @Unique(["user", "species"])

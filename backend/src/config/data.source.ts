@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Species } from "../entities/species";
-import { User } from "../entities/user";
-import { Favorite } from "../entities/favorites";
+import { Species } from "../entities/species.entity";
+import { User } from "../entities/user.entity";
+import { Favorite } from "../entities/favorites.entity";
 import dotenv from "dotenv";
 
 dotenv.config();

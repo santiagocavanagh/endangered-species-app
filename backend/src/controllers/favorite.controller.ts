@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../config/data.source";
-import { Favorite } from "../entities/favorites";
-import { Species } from "../entities/species";
-import { User } from "../entities/user";
+import { Favorite } from "../entities/favorites.entity";
+import { Species } from "../entities/species.entity";
+import { User } from "../entities/user.entity";
 
 export const favoriteController = {
   getFavorites: async (req: any, res: Response) => {

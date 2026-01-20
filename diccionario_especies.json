@@ -1,0 +1,399 @@
+{
+"tendency": [
+	{
+		"id" : 1,
+		"id_species" : 1,
+		"date" : "2000-01-01",
+		"population" : 1000
+	},
+	{
+		"id" : 2,
+		"id_species" : 1,
+		"date" : "2024-01-01",
+		"population" : 2060
+	},
+	{
+		"id" : 4,
+		"id_species" : 2,
+		"date" : "2024-01-01",
+		"population" : 10000
+	},
+	{
+		"id" : 5,
+		"id_species" : 6,
+		"date" : "2024-01-01",
+		"population" : 256500
+	},
+	{
+		"id" : 6,
+		"id_species" : 7,
+		"date" : "2024-01-01",
+		"population" : 1228320
+	},
+	{
+		"id" : 7,
+		"id_species" : 10,
+		"date" : "2024-01-01",
+		"population" : 24900
+	},
+	{
+		"id" : 8,
+		"id_species" : 11,
+		"date" : "2024-01-01",
+		"population" : 50000
+	},
+	{
+		"id" : 9,
+		"id_species" : 19,
+		"date" : "2024-01-01",
+		"population" : 89658
+	},
+	{
+		"id" : 10,
+		"id_species" : 21,
+		"date" : "2024-01-01",
+		"population" : 2600
+	},
+	{
+		"id" : 11,
+		"id_species" : 22,
+		"date" : "2024-01-01",
+		"population" : 150000
+	},
+	{
+		"id" : 12,
+		"id_species" : 23,
+		"date" : "2024-01-01",
+		"population" : 7270
+	},
+	{
+		"id" : 13,
+		"id_species" : 26,
+		"date" : "2024-01-01",
+		"population" : 5000
+	},
+	{
+		"id" : 14,
+		"id_species" : 35,
+		"date" : "2024-01-01",
+		"population" : 50
+	},
+	{
+		"id" : 15,
+		"id_species" : 36,
+		"date" : "2024-01-01",
+		"population" : 37807
+	},
+	{
+		"id" : 16,
+		"id_species" : 38,
+		"date" : "2024-01-01",
+		"population" : 51700
+	},
+	{
+		"id" : 17,
+		"id_species" : 39,
+		"date" : "2024-01-01",
+		"population" : 51700
+	},
+	{
+		"id" : 18,
+		"id_species" : 41,
+		"date" : "2024-01-01",
+		"population" : 2400
+	},
+	{
+		"id" : 19,
+		"id_species" : 44,
+		"date" : "2024-01-01",
+		"population" : 2013
+	},
+	{
+		"id" : 20,
+		"id_species" : 46,
+		"date" : "2024-01-01",
+		"population" : 2500000
+	},
+	{
+		"id" : 21,
+		"id_species" : 47,
+		"date" : "2024-01-01",
+		"population" : 6300000
+	},
+	{
+		"id" : 22,
+		"id_species" : 48,
+		"date" : "2024-01-01",
+		"population" : 413700
+	},
+	{
+		"id" : 23,
+		"id_species" : 49,
+		"date" : "2024-01-01",
+		"population" : 50000
+	},
+	{
+		"id" : 24,
+		"id_species" : 50,
+		"date" : "2024-01-01",
+		"population" : 25000
+	},
+	{
+		"id" : 25,
+		"id_species" : 51,
+		"date" : "2024-01-01",
+		"population" : 850000
+	},
+	{
+		"id" : 26,
+		"id_species" : 52,
+		"date" : "2024-01-01",
+		"population" : 150000
+	},
+	{
+		"id" : 27,
+		"id_species" : 53,
+		"date" : "2024-01-01",
+		"population" : 469760
+	},
+	{
+		"id" : 28,
+		"id_species" : 54,
+		"date" : "2024-01-01",
+		"population" : 32002
+	},
+	{
+		"id" : 29,
+		"id_species" : 55,
+		"date" : "2024-01-01",
+		"population" : 5000
+	},
+	{
+		"id" : 30,
+		"id_species" : 56,
+		"date" : "2024-01-01",
+		"population" : 2037
+	},
+	{
+		"id" : 31,
+		"id_species" : 57,
+		"date" : "2024-01-01",
+		"population" : 100000
+	},
+	{
+		"id" : 32,
+		"id_species" : 58,
+		"date" : "2024-01-01",
+		"population" : 1418
+	},
+	{
+		"id" : 33,
+		"id_species" : 63,
+		"date" : "2024-01-01",
+		"population" : 415428
+	},
+	{
+		"id" : 34,
+		"id_species" : 64,
+		"date" : "2024-01-01",
+		"population" : 415428
+	},
+	{
+		"id" : 35,
+		"id_species" : 65,
+		"date" : "2024-01-01",
+		"population" : 6600
+	},
+	{
+		"id" : 36,
+		"id_species" : 66,
+		"date" : "2024-01-01",
+		"population" : 6000
+	},
+	{
+		"id" : 37,
+		"id_species" : 73,
+		"date" : "2024-01-01",
+		"population" : 10110
+	},
+	{
+		"id" : 38,
+		"id_species" : 74,
+		"date" : "2024-01-01",
+		"population" : 3847
+	},
+	{
+		"id" : 39,
+		"id_species" : 75,
+		"date" : "2024-01-01",
+		"population" : 10100
+	},
+	{
+		"id" : 40,
+		"id_species" : 76,
+		"date" : "2024-01-01",
+		"population" : 16966
+	},
+	{
+		"id" : 41,
+		"id_species" : 77,
+		"date" : "2024-01-01",
+		"population" : 4500
+	},
+	{
+		"id" : 42,
+		"id_species" : 79,
+		"date" : "2024-01-01",
+		"population" : 2500
+	},
+	{
+		"id" : 43,
+		"id_species" : 82,
+		"date" : "2024-01-01",
+		"population" : 19817
+	},
+	{
+		"id" : 44,
+		"id_species" : 85,
+		"date" : "2024-01-01",
+		"population" : 14000
+	},
+	{
+		"id" : 45,
+		"id_species" : 86,
+		"date" : "2024-01-01",
+		"population" : 18000
+	},
+	{
+		"id" : 46,
+		"id_species" : 87,
+		"date" : "2024-01-01",
+		"population" : 4500
+	},
+	{
+		"id" : 47,
+		"id_species" : 88,
+		"date" : "2024-01-01",
+		"population" : 40000
+	},
+	{
+		"id" : 48,
+		"id_species" : 89,
+		"date" : "2024-01-01",
+		"population" : 800
+	},
+	{
+		"id" : 49,
+		"id_species" : 91,
+		"date" : "2024-01-01",
+		"population" : 10000000
+	},
+	{
+		"id" : 50,
+		"id_species" : 92,
+		"date" : "2024-01-01",
+		"population" : 8000000
+	},
+	{
+		"id" : 51,
+		"id_species" : 93,
+		"date" : "2024-01-01",
+		"population" : 774000
+	},
+	{
+		"id" : 52,
+		"id_species" : 95,
+		"date" : "2024-01-01",
+		"population" : 28600
+	},
+	{
+		"id" : 53,
+		"id_species" : 98,
+		"date" : "2024-01-01",
+		"population" : 551340
+	},
+	{
+		"id" : 54,
+		"id_species" : 99,
+		"date" : "2024-01-01",
+		"population" : 19800
+	},
+	{
+		"id" : 55,
+		"id_species" : 100,
+		"date" : "2024-01-01",
+		"population" : 5067
+	},
+	{
+		"id" : 56,
+		"id_species" : 101,
+		"date" : "2024-01-01",
+		"population" : 3200000
+	},
+	{
+		"id" : 57,
+		"id_species" : 102,
+		"date" : "2024-01-01",
+		"population" : 6500
+	},
+	{
+		"id" : 58,
+		"id_species" : 103,
+		"date" : "2024-01-01",
+		"population" : 1200
+	},
+	{
+		"id" : 59,
+		"id_species" : 111,
+		"date" : "2024-01-01",
+		"population" : 250000
+	},
+	{
+		"id" : 60,
+		"id_species" : 114,
+		"date" : "2024-01-01",
+		"population" : 10230
+	},
+	{
+		"id" : 61,
+		"id_species" : 21,
+		"date" : "1996-01-01",
+		"population" : 14500
+	},
+	{
+		"id" : 62,
+		"id_species" : 21,
+		"date" : "2000-01-01",
+		"population" : 2600
+	},
+	{
+		"id" : 63,
+		"id_species" : 23,
+		"date" : "2006-01-01",
+		"population" : 7270
+	},
+	{
+		"id" : 64,
+		"id_species" : 36,
+		"date" : "1973-01-01",
+		"population" : 37807
+	},
+	{
+		"id" : 65,
+		"id_species" : 57,
+		"date" : "1980-01-01",
+		"population" : 100000
+	},
+	{
+		"id" : 66,
+		"id_species" : 58,
+		"date" : "2021-01-01",
+		"population" : 1418
+	},
+	{
+		"id" : 67,
+		"id_species" : 100,
+		"date" : "2018-01-01",
+		"population" : 5067
+	}
+]}

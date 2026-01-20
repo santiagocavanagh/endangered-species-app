@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../config/data.source";
-import { Species } from "../entities/species";
+import { Species } from "../entities/species.entity";
 
 export class speciesController {
   static async getAll(req: Request, res: Response) {
