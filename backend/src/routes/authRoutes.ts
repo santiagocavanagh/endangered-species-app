@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { AppDataSource } from "../data-source";
+import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/user";
 import { authenticateToken } from "../middleware/authMiddleware";
 import bcrypt from "bcrypt";

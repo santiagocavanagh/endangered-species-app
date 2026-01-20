@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { AppDataSource } from "./data-source";
+import { AppDataSource } from "./config/data-source";
 import authRoutes from "./routes/authRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import speciesRoutes from "./routes/speciesRoutes";
