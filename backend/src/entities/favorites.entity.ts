@@ -8,9 +8,11 @@ export class Favorite {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.favorites)
+  @ManyToOne(() => User, (user) => user.favorites, { onDelete: "CASCADE" })
   user: User;
 
-  @ManyToOne(() => Species, (species) => species.favorites)
+  @ManyToOne(() => Species, (species) => species.favorites, {
+    onDelete: "CASCADE",
+  })
   species: Species;
 }

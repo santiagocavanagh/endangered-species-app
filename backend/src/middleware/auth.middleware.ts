@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { ENV } from "../config/env.config";
+import { AuthRequest } from "../types/express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "clave";
-
 export const authenticateToken = (
-  req: any,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
@@ -14,11 +14,15 @@ export const authenticateToken = (
   if (!token)
     return res.status(401).json({ error: "Acceso denegado. No hay token." });
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, ENV.JWT_SECRET, (err, decoded: any) => {
     if (err)
       return res.status(403).json({ error: "Token inválido o expirado." });
 
-    req.user = user;
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    };
     next();
   });
 };

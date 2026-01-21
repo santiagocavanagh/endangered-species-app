@@ -10,8 +10,23 @@ export class Species {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   scientificName: string;
+
+  @Column({
+    type: "enum",
+    enum: ["animal", "planta", "hongo"],
+  })
+  category: "animal" | "planta" | "hongo";
+
+  @Column({
+    type: "enum",
+    enum: ["CR", "EN", "VU", "NT", "LC", "EX"],
+  })
+  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+
+  @Column({ default: true })
+  isVisible: boolean;
 
   @Column({
     type: "enum",
@@ -22,28 +37,29 @@ export class Species {
 
   @Column({
     type: "enum",
+    enum: ["Global", "Regional"],
+    default: "Global",
+  })
+  scope: "Global" | "Regional";
+
+  @Column({
+    type: "enum",
     enum: ["Aumento", "Descenso", "Estable", "Desconocido"],
     default: "Desconocido",
   })
   currentTrend: "Aumento" | "Descenso" | "Estable" | "Desconocido";
 
-  @OneToMany(() => Tendency, (tendency) => tendency.species, { cascade: true })
-  tendencyHistory: Tendency[];
-
-  @Column()
-  status: string;
-
-  @Column()
+  @Column({ type: "text", nullable: true })
   habitat: string;
 
-  @Column()
+  @Column({ type: "text", nullable: true })
   population: string;
 
-  @Column({ type: "text" })
+  @Column({ type: "text", nullable: true })
   imageUrl: string;
 
-  @Column()
-  category: string;
+  @OneToMany(() => Tendency, (tendency) => tendency.species, { cascade: true })
+  tendencyHistory: Tendency[];
 
   @OneToMany(() => Favorite, (favorite) => favorite.species)
   favorites: Favorite[];

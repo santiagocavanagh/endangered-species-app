@@ -3,9 +3,13 @@ import { DataSource } from "typeorm";
 import { Species } from "../entities/species.entity";
 import { User } from "../entities/user.entity";
 import { Favorite } from "../entities/favorites.entity";
+import { Tendency } from "../entities/tendency.entity";
+import { ENV } from "./env.config";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const production = ENV.NODE_ENV;
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -14,9 +18,9 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  synchronize: true,
-  logging: true,
-  entities: [Species, User, Favorite],
+  synchronize: !production,
+  logging: !production,
+  entities: [Species, User, Favorite, Tendency],
   migrations: [],
   subscribers: [],
 });

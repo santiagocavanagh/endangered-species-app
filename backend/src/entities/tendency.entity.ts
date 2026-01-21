@@ -6,12 +6,17 @@ export class Tendency {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: "date" })
-  date: string;
+  @Column({
+    type: "date",
+    default: () => "CURRENT_DATE",
+  })
+  date: Date;
 
   @Column({ type: "bigint" })
   population: number;
 
-  @ManyToOne(() => Species, (species) => species.tendencyHistory)
+  @ManyToOne(() => Species, (species) => species.tendencyHistory, {
+    onDelete: "CASCADE",
+  })
   species: Species;
 }
