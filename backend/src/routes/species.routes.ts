@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
-import { speciesController } from "../controllers/species.controller";
+import { SpeciesController } from "../controllers/species.controller";
 
 const router = Router();
 
-router.get("/", speciesController.getAll);
-router.get("/:id", speciesController.getOne);
+router.get("/", SpeciesController.getAll);
+router.get("/:id", SpeciesController.getOne);
 
-router.post("/", authenticateToken, isAdmin, speciesController.create);
+router.post("/", authenticateToken, isAdmin, SpeciesController.create);
 
-router.put("/:id", authenticateToken, isAdmin, speciesController.update);
+router.put("/:id", authenticateToken, isAdmin, SpeciesController.update);
 
-router.delete("/:id", authenticateToken, isAdmin, speciesController.delete);
+router.delete("/:id", authenticateToken, isAdmin, SpeciesController.delete);
 
 export default router;

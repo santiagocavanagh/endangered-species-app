@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
-import { AuthRequest } from "../types/express";
+import { AuthRequest } from "../types/auth.types";
 import jwt from "jsonwebtoken";
 
 export const authenticateToken = (
@@ -14,7 +14,7 @@ export const authenticateToken = (
   if (!token)
     return res.status(401).json({ error: "Acceso denegado. No hay token." });
 
-  jwt.verify(token, ENV.JWT_SECRET, (err, decoded: any) => {
+  jwt.verify(token, ENV.JWT_SECRET as string, (err, decoded: any) => {
     if (err)
       return res.status(403).json({ error: "Token inválido o expirado." });
 
