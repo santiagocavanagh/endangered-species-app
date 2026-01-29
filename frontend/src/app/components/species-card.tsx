@@ -7,7 +7,7 @@ export interface Species {
   id: number;
   name: string;
   scientificName: string;
-  status: "critico" | "peligro" | "vulnerable";
+  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
   habitat: string;
   region: string;
   population: string;
@@ -33,17 +33,29 @@ export function SpeciesCard({
   
   const { isAdmin } = useAuth();
   const statusConfig = {
-    critico: {
-      label: "En peligro crítico",
+    CR: {
+      label: "En Peligro Crítico",
       color: "bg-red-100 text-red-800 border-red-200",
     },
-    peligro: {
-      label: "En peligro",
+    EN: {
+      label: "En Peligro",
       color: "bg-orange-100 text-orange-800 border-orange-200",
     },
-    vulnerable: {
+    VU: {
       label: "Vulnerable",
       color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    },
+    NT: {
+      label: "Casi Amenazado",
+      color: "bg-blue-100 text-blue-800 border-blue-200",
+    },
+    LC: {
+      label: "Preocupación Menor",
+      color: "bg-green-100 text-green-800 border-green-200",
+    },
+    EX: {
+      label: "Extinto",
+      color: "bg-gray-100 text-gray-800 border-gray-200",
     },
   };
 

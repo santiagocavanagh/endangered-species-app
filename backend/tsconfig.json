@@ -3,8 +3,9 @@
     /* Configuración de Entorno y Node.js */
     "target": "ES2021",                      // Versión de JavaScript estable para Node moderno
     "module": "CommonJS",                    // El estándar más compatible con TypeORM y Express
-    "lib": ["esnext"],                       // Permite usar las últimas funciones de JS
+    "lib": ["ES2021"],                // Utiliza librerías de ES2021 + DOM para Node.js
     "types": ["node"],                       // Reconoce los tipos nativos de Node.js
+    "typeRoots": ["./node_modules/@types"], // Busca tipos en node_modules/@types
     "moduleResolution": "node",              // Ayuda a encontrar librerías en node_modules
 
     /* Rutas de Archivos */

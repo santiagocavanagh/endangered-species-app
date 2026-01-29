@@ -22,9 +22,12 @@ export function FilterBar({
 }: FilterBarProps) {
   const statusOptions = [
     { value: "all", label: "Todos los estados" },
-    { value: "critico", label: "En peligro crítico" },
-    { value: "peligro", label: "En peligro" },
-    { value: "vulnerable", label: "Vulnerable" },
+    { value: "EX", label: "Extinto" },
+    { value: "CR", label: "En Peligro Crítico" },
+    { value: "EN", label: "En Peligro" },
+    { value: "VU", label: "Vulnerable" },
+    { value: "NT", label: "Casi Amenazado" },
+    { value: "LC", label: "Preocupación Menor" },
   ];
   const habitatOptions = {
     animal: [

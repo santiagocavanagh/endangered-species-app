@@ -18,7 +18,7 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
   const initialForm: SpeciesForm = {
     name: "",
     scientificName: "",
-    status: "vulnerable",
+    status: "VU",
     habitat: "",
     region: "",
     population: "",
@@ -126,9 +126,12 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 value={formData.status}
                 onChange={e => setFormData({...formData, status: e.target.value as any})}
               >
-                <option value="vulnerable">Vulnerable</option>
-                <option value="peligro">En Peligro</option>
-                <option value="critico">En Peligro Crítico</option>
+                <option value="EX">Extinto</option>
+                <option value="CR">En Peligro Crítico</option>
+                <option value="EN">En Peligro</option>
+                <option value="VU">Vulnerable</option>
+                <option value="NT">Casi Amenazado</option>
+                <option value="LC">Preocupación Menor</option>
               </select>
             </div>
             <div className="space-y-2">

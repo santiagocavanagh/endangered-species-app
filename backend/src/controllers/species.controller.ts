@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import { In } from "typeorm";
 import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species.entity";
+import {
+  SPECIES_REGIONS,
+  SPECIES_CATEGORIES,
+  SPECIES_STATUS,
+} from "../constants/species.constants";
 import { AuthRequest } from "../types/auth.types";
 
 export class SpeciesController {
@@ -73,7 +78,7 @@ export class SpeciesController {
           currentTrend: In(["Aumento", "Estable"]),
         },
         order: { name: "ASC" },
-        take: 20, // Límite para no sobrecargar
+        take: 20,
       });
 
       return res.json(stories);
@@ -136,7 +141,6 @@ export class SpeciesController {
   // 5. CREAR (Protegido - Requiere Admin)
   static create = async (req: AuthRequest, res: Response) => {
     try {
-      // TODO: Implementar validación con DTO (Joi, zod, class-validator, etc.)
       const newSpecies = SpeciesController.speciesRepo.create(req.body);
       const result = await SpeciesController.speciesRepo.save(newSpecies);
       return res.status(201).json(result);
