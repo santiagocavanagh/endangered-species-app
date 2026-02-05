@@ -1,19 +1,21 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
+import { limiter } from "../middleware/rate.limiter";
+import { SpeciesController } from "../controllers/species.controller";
 import {
   validateCreateSpecies,
   validateUpdateSpecies,
   handleValidationErrors,
 } from "../middleware/species.validation";
-import { SpeciesController } from "../controllers/species.controller";
 
 const router = Router();
 
-router.get("/", SpeciesController.getAll);
-router.get("/:id", SpeciesController.getOne);
+router.get("/", limiter, SpeciesController.getAll);
+router.get("/:id", limiter, SpeciesController.getOne);
 
 router.post(
   "/",
+  limiter,
   authenticateToken,
   isAdmin,
   validateCreateSpecies,
@@ -23,6 +25,7 @@ router.post(
 
 router.put(
   "/:id",
+  limiter,
   authenticateToken,
   isAdmin,
   validateUpdateSpecies,
@@ -30,6 +33,6 @@ router.put(
   SpeciesController.update,
 );
 
-router.delete("/:id", authenticateToken, isAdmin, SpeciesController.delete);
+router.delete("/:id", limiter, authenticateToken, isAdmin, SpeciesController.delete);
 
 export default router;
