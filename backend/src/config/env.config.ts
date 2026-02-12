@@ -5,9 +5,7 @@ const requiredEnv = ["JWT_SECRET", "DB_USER", "DB_PASSWORD", "DB_NAME"];
 
 requiredEnv.forEach((name) => {
   if (!process.env[name]) {
-    throw new Error(
-      `❌ FATAL ERROR: La variable de entorno ${name} no está definida.`,
-    );
+    throw new Error(`La variable de entorno ${name} no está definida`);
   }
 });
 

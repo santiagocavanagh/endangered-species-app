@@ -1,8 +1,8 @@
-import { body, validationResult } from "express-validator";
+import { body, validationResult, param, matchedData } from "express-validator";
 import { Request, Response, NextFunction } from "express";
 
-const VALID_STATUS = ["CR", "EN", "VU", "NT", "LC", "EX"];
-const VALID_CATEGORIES = ["animal", "planta", "hongo"];
+const VALID_STATUS = ["CR", "EN", "VU", "NT", "LC", "EX"] as const;
+const VALID_CATEGORIES = ["animal", "planta", "hongo"] as const;
 const VALID_REGIONS = [
   "America",
   "Europa",
@@ -10,22 +10,20 @@ const VALID_REGIONS = [
   "Africa",
   "Oceania",
   "Global",
+] as const;
+
+export const validateSpeciesId = [
+  param("id")
+    .exists()
+    .withMessage("ID de especie requerido")
+    .bail()
+    .isInt({ gt: 0 })
+    .withMessage("ID de especie debe ser un entero mayor a 0")
+    .toInt(),
+  (req: Request, res: Response, next: NextFunction) => {
+    next();
+  },
 ];
-
-export const validateSpeciesId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { id } = req.params;
-  const numericId = parseInt(id as string, 10);
-
-  if (isNaN(numericId) || numericId <= 0) {
-    return res.status(400).json({ error: "ID de especie inválido" });
-  }
-
-  next();
-};
 
 export const validateCreateSpecies = [
   body("name")

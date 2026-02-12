@@ -32,6 +32,9 @@ Thumbs.db
 # --- TYPESCRIPT ---
 *.tsbuildinfo
 
+# --- SCRIPTS ---
+scripts/
+
 # --- REPORTES ---
 /REPORTES
 *ANALISIS_ERRORES_VULNERABILIDADES.md

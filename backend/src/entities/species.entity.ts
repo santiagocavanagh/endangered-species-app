@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
 import { Favorite } from "./favorites.entity";
+import { Region } from "./region.entity";
 import { Tendency } from "./tendency.entity";
 
 @Entity("species")
@@ -7,11 +15,16 @@ export class Species {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
-
-  @Column({ unique: true })
+  @Column({
+    name: "scientific_name",
+    type: "varchar",
+    length: 255,
+    unique: true,
+  })
   scientificName: string;
+
+  @Column({ type: "varchar", length: 255 })
+  name: string;
 
   @Column({
     type: "enum",
@@ -19,44 +32,53 @@ export class Species {
   })
   category: "animal" | "planta" | "hongo";
 
+  @Column({ type: "varchar", length: 255 })
+  habitat: string;
+
   @Column({
     type: "enum",
     enum: ["CR", "EN", "VU", "NT", "LC", "EX"],
   })
   status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
 
-  @Column({ default: true })
-  isVisible: boolean;
+  @ManyToMany(() => Region, (region) => region.species)
+  @JoinTable({
+    name: "species_region",
+    joinColumn: { name: "species_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "region_id", referencedColumnName: "id" },
+  })
+  region: Region[];
+
+  @Column({ name: "population_value", type: "integer" })
+  populationValue: number;
+
+  @Column({
+    name: "population_operator",
+    type: "varchar",
+    length: 5,
+    nullable: true,
+  })
+  populationOperator: string | null;
+
+  @Column({
+    name: "current_trend",
+    type: "enum",
+    enum: ["aumento", "descenso", "estable", "desconocido"],
+    default: "desconocido",
+  })
+  currentTrend: "aumento" | "descenso" | "estable" | "desconocido";
 
   @Column({
     type: "enum",
-    enum: ["America", "Europa", "Africa", "Asia", "Oceania", "Global"],
-    default: "Global",
+    enum: ["global", "regional"],
+    default: "global",
   })
-  region: "America" | "Europa" | "Africa" | "Asia" | "Oceania" | "Global";
+  scope: "global" | "regional";
 
-  @Column({
-    type: "enum",
-    enum: ["Global", "Regional"],
-    default: "Global",
-  })
-  scope: "Global" | "Regional";
-
-  @Column({
-    type: "enum",
-    enum: ["Aumento", "Descenso", "Estable", "Desconocido"],
-    default: "Desconocido",
-  })
-  currentTrend: "Aumento" | "Descenso" | "Estable" | "Desconocido";
-
-  @Column({ type: "text", nullable: true })
-  habitat: string;
-
-  @Column({ type: "text", nullable: true })
-  population: string;
-
-  @Column({ type: "text", nullable: true })
+  @Column({ name: "image_url", type: "text" })
   imageUrl: string;
+
+  isVisible?: boolean;
 
   @OneToMany(() => Tendency, (tendency) => tendency.species, { cascade: true })
   tendencyHistory: Tendency[];

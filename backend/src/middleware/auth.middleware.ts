@@ -1,7 +1,6 @@
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
 import { AuthRequest } from "../types/auth.types";
-import { AuthController } from "../controllers/auth.controller";
 import jwt from "jsonwebtoken";
 
 export const authenticateToken = (
@@ -13,11 +12,11 @@ export const authenticateToken = (
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token)
-    return res.status(401).json({ error: "Acceso denegado. No hay token." });
+    return res.status(401).json({ error: "Acceso denegado! Falta Token" });
 
-  jwt.verify(token, ENV.JWT_SECRET as string, (err, decoded: any) => {
+  jwt.verify(token, ENV.JWT_SECRET, (err, decoded: any) => {
     if (err)
-      return res.status(403).json({ error: "Token inválido o expirado." });
+      return res.status(403).json({ error: "Token inválido o expirado" });
 
     req.user = {
       id: decoded.id,
@@ -34,6 +33,6 @@ export const isAdmin = (req: any, res: Response, next: NextFunction) => {
   } else {
     res
       .status(403)
-      .json({ error: "Acceso denegado. Se requiere rol de Administrador." });
+      .json({ error: "Acceso denegado! Se requiere rol de Administrador" });
   }
 };
