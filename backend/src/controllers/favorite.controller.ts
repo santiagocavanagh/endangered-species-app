@@ -5,6 +5,7 @@ import { Species } from "../entities/species.entity";
 import { User } from "../entities/user.entity";
 
 export const favoriteController = {
+  // Obtener favoritos del usuario
   getFavorites: async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
@@ -21,6 +22,7 @@ export const favoriteController = {
     }
   },
 
+  // Agregar especie a favoritos
   addFavorite: async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
@@ -46,6 +48,7 @@ export const favoriteController = {
     }
   },
 
+  // Eliminar especie de favoritos
   removeFavorite: async (req: any, res: Response) => {
     try {
       const userId = req.user.id;

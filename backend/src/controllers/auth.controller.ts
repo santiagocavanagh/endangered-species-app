@@ -8,6 +8,7 @@ import { ENV } from "../config/env.config";
 const userRepository = AppDataSource.getRepository(User);
 
 export class AuthController {
+  // Registro de usuario
   static register = async (req: Request, res: Response) => {
     const { email, password, role, name } = req.body;
     try {
@@ -38,6 +39,7 @@ export class AuthController {
     }
   };
 
+  // Login de usuario
   static login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     try {
@@ -65,6 +67,7 @@ export class AuthController {
     }
   };
 
+  // Actualizar perfil
   static updateProfile = async (req: any, res: Response) => {
     const { name, password } = req.body;
     const userId = req.user?.id;

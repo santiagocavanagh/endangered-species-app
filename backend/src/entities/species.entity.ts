@@ -68,13 +68,6 @@ export class Species {
   })
   currentTrend: "aumento" | "descenso" | "estable" | "desconocido";
 
-  @Column({
-    type: "enum",
-    enum: ["global", "regional"],
-    default: "global",
-  })
-  scope: "global" | "regional";
-
   @Column({ name: "image_url", type: "text" })
   imageUrl: string;
 
