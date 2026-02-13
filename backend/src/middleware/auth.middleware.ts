@@ -27,12 +27,16 @@ export const authenticateToken = (
   });
 };
 
-export const isAdmin = (req: any, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === "admin") {
-    next();
-  } else {
-    res
-      .status(403)
-      .json({ error: "Acceso denegado! Se requiere rol de Administrador" });
+export const isAdmin = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.user?.role === "admin") {
+    return next();
   }
+
+  return res.status(403).json({
+    error: "Se requiere rol de administrador",
+  });
 };

@@ -1,81 +1,99 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { SpeciesService } from "../services/species.service";
-import { SpeciesQuery, SpeciesParams } from "../types/species.types";
+
+const service = new SpeciesService();
 
 export class SpeciesController {
-  private static speciesService = new SpeciesService();
-
-  //Obtener todas (con filtros + paginación)
-  static async getAll(req: Request<{}, {}, {}, SpeciesQuery>, res: Response) {
+  // Get All
+  static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const { region, category, page = "1", limit = "10" } = req.query;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
 
-      const pageNum = Number(page);
-      const limitNum = Number(limit);
+      const filters = {
+        category: req.query.category as any,
+        region: req.query.region as string | undefined,
+      };
 
-      if (
-        Number.isNaN(pageNum) ||
-        Number.isNaN(limitNum) ||
-        pageNum < 1 ||
-        limitNum < 1 ||
-        limitNum > 100
-      ) {
-        return res.status(400).json({
-          error: "Parámetros de paginación inválidos",
-        });
-      }
+      const result = await service.getAll(filters, page, limit);
 
-      const result = await this.speciesService.getAll(
-        {
-          region: region?.trim(),
-          category: category?.trim(),
-        },
-        pageNum,
-        limitNum,
-      );
-
-      return res.status(200).json({
-        data: result.data,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: result.total,
-          pages: Math.ceil(result.total / limitNum),
-        },
-      });
+      return res.json(result);
     } catch (error) {
-      console.error("SpeciesController.getAll:", error);
-      return res.status(500).json({
-        error: "Error interno al obtener especies",
-      });
+      next(error);
     }
   }
 
-  // Obtener una por ID
-  static async getOne(req: Request<SpeciesParams>, res: Response) {
+  // Get One
+  static async getOne(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
 
-      if (!Number.isInteger(id) || id <= 0) {
-        return res.status(400).json({
-          error: "ID inválido",
-        });
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID" });
       }
 
-      const species = await this.speciesService.getOne(id);
+      const species = await service.getOne(id);
 
       if (!species) {
-        return res.status(404).json({
-          error: "Especie no encontrada",
-        });
+        return res.status(404).json({ message: "Species not found" });
       }
 
-      return res.status(200).json(species);
+      return res.json(species);
     } catch (error) {
-      console.error("SpeciesController.getOne:", error);
-      return res.status(500).json({
-        error: "Error interno al obtener la especie",
-      });
+      next(error);
+    }
+  }
+
+  // Create
+  static async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const created = await service.create(req.body);
+
+      return res.status(201).json(created);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Update
+  static async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Number(req.params.id);
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+
+      const updated = await service.update(id, req.body);
+
+      if (!updated) {
+        return res.status(404).json({ message: "Species not found" });
+      }
+
+      return res.json(updated);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Soft Delete
+  static async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Number(req.params.id);
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+
+      const deleted = await service.delete(id);
+
+      if (!deleted) {
+        return res.status(404).json({ message: "Species not found" });
+      }
+
+      return res.status(204).send();
+    } catch (error) {
+      next(error);
     }
   }
 }

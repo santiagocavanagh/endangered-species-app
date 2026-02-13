@@ -1,7 +1,7 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import { SpeciesController } from "../controllers/species.controller";
 import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
 import { limiter } from "../middleware/rate.limiter";
-import { SpeciesController } from "../controllers/species.controller";
 import {
   validateCreateSpecies,
   validateUpdateSpecies,
@@ -33,6 +33,12 @@ router.put(
   SpeciesController.update,
 );
 
-router.delete("/:id", limiter, authenticateToken, isAdmin, SpeciesController.delete);
+router.delete(
+  "/:id",
+  limiter,
+  authenticateToken,
+  isAdmin,
+  SpeciesController.delete,
+);
 
 export default router;
