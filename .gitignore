@@ -2,7 +2,7 @@
 node_modules/
 **/node_modules/
 
-# --- SEGURIDAD (MUY IMPORTANTE) ---
+# --- SEGURIDAD ---
 .env
 *.env
 .env.local
@@ -10,6 +10,9 @@ node_modules/
 
 # --- COMPILACIÓN ---
 dist/
+migrations/
+dist/migrations/
+coverage/
 build/
 out/
 bin/
@@ -19,6 +22,7 @@ obj/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 *.log
 
 # --- SISTEMA Y EDITORES ---
@@ -31,6 +35,14 @@ Thumbs.db
 
 # --- TYPESCRIPT ---
 *.tsbuildinfo
+
+# --- CONFIGURACIONES ---
+*.config.js
+
+# --- TEMPORALES ---
+*.tmp
+*.temp
+ormconfig.json
 
 # --- SCRIPTS ---
 scripts/

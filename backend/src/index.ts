@@ -1,17 +1,18 @@
 import dotenv from "dotenv";
-dotenv.config();
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/data.source";
+import { ENV } from "./config/env.config";
 import authRoutes from "./routes/auth.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import speciesRoutes from "./routes/species.routes";
 
+dotenv.config();
 const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: ENV.FRONTEND_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -26,7 +27,7 @@ AppDataSource.initialize()
   .then(() => {
     console.log("✅ Conexión exitosa a MySQL con TypeORM");
 
-    const PORT = process.env.PORT || 3000;
+    const PORT = ENV.PORT;
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
