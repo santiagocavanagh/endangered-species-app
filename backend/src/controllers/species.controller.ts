@@ -1,29 +1,31 @@
 import { Request, Response, NextFunction } from "express";
 import { SpeciesService } from "../services/species.service";
+import { SpeciesMapper } from "../mappers/species.mapper";
 
 const service = new SpeciesService();
 
 export class SpeciesController {
-  // Get All
-  static async getAll(req: Request, res: Response, next: NextFunction) {
+  // Critical
+  static async getCritical(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 10;
-
-      const filters = {
-        category: req.query.category as any,
-        region: req.query.region as string | undefined,
-      };
-
-      const result = await service.getAll(filters, page, limit);
-
-      return res.json(result);
+      const data = await service.getCritical();
+      return res.json(data.map(SpeciesMapper));
     } catch (error) {
       next(error);
     }
   }
 
-  // Get One
+  // Rescued
+  static async getRescued(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await service.getRescued();
+      return res.json(data.map(SpeciesMapper));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Get by id
   static async getOne(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
@@ -38,7 +40,7 @@ export class SpeciesController {
         return res.status(404).json({ message: "Species not found" });
       }
 
-      return res.json(species);
+      return res.json(SpeciesMapper(species));
     } catch (error) {
       next(error);
     }
@@ -48,8 +50,7 @@ export class SpeciesController {
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
       const created = await service.create(req.body);
-
-      return res.status(201).json(created);
+      return res.status(201).json(SpeciesMapper(created));
     } catch (error) {
       next(error);
     }
@@ -66,17 +67,13 @@ export class SpeciesController {
 
       const updated = await service.update(id, req.body);
 
-      if (!updated) {
-        return res.status(404).json({ message: "Species not found" });
-      }
-
-      return res.json(updated);
+      return res.json(SpeciesMapper(updated));
     } catch (error) {
       next(error);
     }
   }
 
-  // Soft Delete
+  // Delete
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
@@ -85,11 +82,7 @@ export class SpeciesController {
         return res.status(400).json({ message: "Invalid ID" });
       }
 
-      const deleted = await service.delete(id);
-
-      if (!deleted) {
-        return res.status(404).json({ message: "Species not found" });
-      }
+      await service.delete(id);
 
       return res.status(204).send();
     } catch (error) {

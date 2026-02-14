@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { Species } from "./species.entity";
 
 @Entity("tendency")
@@ -18,5 +24,6 @@ export class Tendency {
   @ManyToOne(() => Species, (species) => species.tendencyHistory, {
     onDelete: "CASCADE",
   })
+  @JoinColumn({ name: "id_species" })
   species: Species;
 }

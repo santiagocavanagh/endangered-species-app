@@ -5,11 +5,10 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
-  DeleteDateColumn,
 } from "typeorm";
-import { Favorite } from "./favorites.entity";
 import { Region } from "./region.entity";
 import { Tendency } from "./tendency.entity";
+import { Favorite } from "./favorites.entity";
 
 @Entity("species")
 export class Species {
@@ -73,9 +72,6 @@ export class Species {
   imageUrl: string;
 
   isVisible?: boolean;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @OneToMany(() => Tendency, (tendency) => tendency.species, { cascade: true })
   tendencyHistory: Tendency[];

@@ -10,12 +10,14 @@ import {
 
 const router = Router();
 
-router.get("/", limiter, SpeciesController.getAll);
+// Public
+router.get("/critical", limiter, SpeciesController.getCritical);
+router.get("/rescued", limiter, SpeciesController.getRescued);
 router.get("/:id", limiter, SpeciesController.getOne);
 
+// Admin
 router.post(
   "/",
-  limiter,
   authenticateToken,
   isAdmin,
   validateCreateSpecies,
@@ -25,7 +27,6 @@ router.post(
 
 router.put(
   "/:id",
-  limiter,
   authenticateToken,
   isAdmin,
   validateUpdateSpecies,
@@ -33,12 +34,6 @@ router.put(
   SpeciesController.update,
 );
 
-router.delete(
-  "/:id",
-  limiter,
-  authenticateToken,
-  isAdmin,
-  SpeciesController.delete,
-);
+router.delete("/:id", authenticateToken, isAdmin, SpeciesController.delete);
 
 export default router;

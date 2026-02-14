@@ -1,230 +1,124 @@
 import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species.entity";
 import { Region } from "../entities/region.entity";
-import { SpeciesDTO } from "../dto/species.dto";
-import { In, IsNull } from "typeorm";
-
-type Category = "animal" | "planta" | "hongo";
-type Status = "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
-type Trend = "aumento" | "descenso" | "estable" | "desconocido";
-
-interface Filters {
-  region?: string;
-  category?: Category;
-}
-
-interface CreateSpeciesInput {
-  scientificName: string;
-  name: string;
-  category: Category;
-  habitat: string;
-  status: Status;
-  imageUrl: string;
-  populationValue: number;
-  populationOperator?: string | null;
-  currentTrend?: Trend;
-  region: number[];
-}
-
-type UpdateSpeciesInput = Partial<CreateSpeciesInput>;
-
-interface Paginated<T> {
-  data: T[];
-  total: number;
-}
+import { Tendency } from "../entities/tendency.entity";
+import { In } from "typeorm";
+import { CreateDTO, UpdateDTO } from "../dto/species.dto";
 
 export class SpeciesService {
   private speciesRepo = AppDataSource.getRepository(Species);
   private regionRepo = AppDataSource.getRepository(Region);
+  private tendencyRepo = AppDataSource.getRepository(Tendency);
 
-  // Get All + Filters + Pagination + Sorting
-  async getAll(
-    filters: Filters,
-    page: number,
-    limit: number,
-  ): Promise<Paginated<SpeciesDTO>> {
-    const skip = (page - 1) * limit;
-
-    const qb = this.speciesRepo
-      .createQueryBuilder("species")
-      .leftJoinAndSelect("species.region", "region")
-      .where("species.deletedAt IS NULL")
-      .skip(skip)
-      .take(limit)
-      .orderBy("species.name", "ASC");
-
-    if (filters.category) {
-      qb.andWhere("species.category = :category", {
-        category: filters.category,
-      });
-    }
-
-    if (filters.region) {
-      qb.andWhere("region.name = :region", {
-        region: filters.region,
-      });
-    }
-
-    const [entities, total] = await qb.getManyAndCount();
-
-    return {
-      data: entities.map((e) => this.toDTO(e)),
-      total,
-    };
+  // READ
+  async getCritical() {
+    return this.speciesRepo.find({
+      where: { status: In(["EX", "CR", "EN", "VU"]) },
+      relations: ["region"],
+      order: { populationValue: "ASC" },
+    });
   }
 
-  // Get One
-  async getOne(id: number): Promise<SpeciesDTO | null> {
-    const entity = await this.speciesRepo.findOne({
-      where: {
-        id,
-        deletedAt: IsNull(),
-      },
+  async getRescued() {
+    return this.speciesRepo.find({
+      where: { status: In(["NT", "LC"]) },
+      relations: ["region"],
+      order: { populationValue: "DESC" },
+    });
+  }
+
+  async getOne(id: number) {
+    return this.speciesRepo.findOne({
+      where: { id },
       relations: ["region", "tendencyHistory"],
     });
-
-    if (!entity) return null;
-
-    return this.toDTO(entity);
   }
 
-  // Create
-  async create(data: CreateSpeciesInput): Promise<SpeciesDTO> {
-    const regions = await this.resolveRegions(data.region);
+  // CREATE
+  async create(data: CreateDTO) {
+    const regions = await this.regionRepo.findBy({
+      id: In(data.regionIds),
+    });
 
-    const entity = this.speciesRepo.create({
-      ...data,
+    const species = this.speciesRepo.create({
+      scientificName: data.scientificName,
+      name: data.name,
+      category: data.category,
+      habitat: data.habitat,
+      status: data.status,
+      populationValue: data.populationValue,
       populationOperator: data.populationOperator ?? null,
-      currentTrend: data.currentTrend ?? "desconocido",
+      imageUrl: data.imageUrl,
       region: regions,
     });
 
-    const saved = await this.speciesRepo.save(entity);
+    const saved = await this.speciesRepo.save(species);
 
-    return this.toDTO(saved);
+    await this.tendencyRepo.save({
+      species: saved,
+      date: data.censusDate,
+      population: data.populationValue,
+    });
+
+    return saved;
   }
 
-  // Update
-  async update(
-    id: number,
-    data: UpdateSpeciesInput,
-  ): Promise<SpeciesDTO | null> {
-    const entity = await this.speciesRepo.findOne({
-      where: {
-        id,
-        deletedAt: IsNull(),
-      },
+  // UPDATE
+  async update(id: number, data: UpdateDTO) {
+    const species = await this.speciesRepo.findOne({
+      where: { id },
       relations: ["region"],
     });
 
-    if (!entity) return null;
+    if (!species) throw new Error("Species not found");
 
-    // Resolver regiones si vienen
-    if (data.region) {
-      entity.region = await this.resolveRegions(data.region);
+    if (data.regionIds) {
+      species.region = await this.regionRepo.findBy({
+        id: In(data.regionIds),
+      });
     }
 
-    // Actualizar propiedades escalares manualmente
-    if (data.scientificName !== undefined)
-      entity.scientificName = data.scientificName;
+    const previousPopulation = species.populationValue;
 
-    if (data.name !== undefined) entity.name = data.name;
-
-    if (data.category !== undefined) entity.category = data.category;
-
-    if (data.habitat !== undefined) entity.habitat = data.habitat;
-
-    if (data.status !== undefined) entity.status = data.status;
-
-    if (data.imageUrl !== undefined) entity.imageUrl = data.imageUrl;
-
-    if (data.populationValue !== undefined)
-      entity.populationValue = data.populationValue;
-
-    if (data.populationOperator !== undefined)
-      entity.populationOperator = data.populationOperator ?? null;
-
-    if (data.currentTrend !== undefined)
-      entity.currentTrend = data.currentTrend;
-
-    const updated = await this.speciesRepo.save(entity);
-
-    return this.toDTO(updated);
-  }
-
-  // Soft Delete
-  async delete(id: number): Promise<boolean> {
-    const result = await this.speciesRepo.softDelete(id);
-    return !!result.affected;
-  }
-
-  // Regiones Dinamico
-  private async resolveRegions(regionIds: number[]): Promise<Region[]> {
-    const regions = await this.regionRepo.find({
-      where: { id: In(regionIds) },
+    Object.assign(species, {
+      scientificName: data.scientificName ?? species.scientificName,
+      name: data.name ?? species.name,
+      category: data.category ?? species.category,
+      habitat: data.habitat ?? species.habitat,
+      status: data.status ?? species.status,
+      populationValue: data.populationValue ?? species.populationValue,
+      populationOperator: data.populationOperator ?? species.populationOperator,
+      imageUrl: data.imageUrl ?? species.imageUrl,
     });
 
-    if (regions.length !== regionIds.length) {
-      throw new Error("Una o más regiones no existen");
+    const updated = await this.speciesRepo.save(species);
+
+    // Si cambia población, registrar censo y recalcular tendencia
+    if (
+      data.populationValue !== undefined &&
+      data.populationValue !== previousPopulation &&
+      data.censusDate
+    ) {
+      await this.tendencyRepo.save({
+        species: updated,
+        date: data.censusDate,
+        population: data.populationValue,
+      });
+
+      if (data.populationValue > previousPopulation)
+        updated.currentTrend = "aumento";
+      else if (data.populationValue < previousPopulation)
+        updated.currentTrend = "descenso";
+      else updated.currentTrend = "estable";
+
+      await this.speciesRepo.save(updated);
     }
 
-    return regions;
+    return updated;
   }
 
-  // DTO Transformer
-  private toDTO(entity: Species): SpeciesDTO {
-    return {
-      id: entity.id,
-      scientificName: entity.scientificName,
-      name: entity.name,
-      category: entity.category,
-      habitat: entity.habitat,
-      status: entity.status,
-      imageUrl: entity.imageUrl,
-
-      region: entity.region?.map((r) => r.name) ?? [],
-
-      scope: this.calculateScope(entity.region),
-      populationDisplay: this.populationDisplay(entity),
-      riskLevel: this.riskLevel(entity.status),
-      isCritical: ["CR", "EN", "VU"].includes(entity.status),
-      trendDirection: this.normalizeTrend(entity.currentTrend),
-    };
-  }
-
-  // Scope Dinamico
-  private calculateScope(regions: Region[]) {
-    if (!regions?.length) return "unknown";
-    return regions.length > 2 ? "global" : "regional";
-  }
-
-  private populationDisplay(entity: Species) {
-    const op = entity.populationOperator ?? "";
-    return `${op} ${entity.populationValue}`.trim();
-  }
-
-  private riskLevel(status: Status) {
-    const map: Record<Status, number> = {
-      CR: 4,
-      EN: 3,
-      VU: 2,
-      NT: 1,
-      LC: 0,
-      EX: 5,
-    };
-    return map[status];
-  }
-
-  private normalizeTrend(trend: Trend): "up" | "down" | "stable" | "unknown" {
-    switch (trend) {
-      case "aumento":
-        return "up";
-      case "descenso":
-        return "down";
-      case "estable":
-        return "stable";
-      default:
-        return "unknown";
-    }
+  // DELETE
+  async delete(id: number) {
+    await this.speciesRepo.delete(id);
   }
 }
