@@ -9,6 +9,14 @@ import {
 import { Region } from "./region.entity";
 import { Tendency } from "./tendency.entity";
 import { Favorite } from "./favorites.entity";
+import {
+  SPECIES_STATUS,
+  SPECIES_CATEGORIES,
+  SPECIES_TREND,
+  SpeciesTrend,
+  SpeciesStatus,
+  SpeciesCategory,
+} from "../constants/species.constants";
 
 @Entity("species")
 export class Species {
@@ -28,18 +36,18 @@ export class Species {
 
   @Column({
     type: "enum",
-    enum: ["animal", "planta", "hongo"],
+    enum: SPECIES_CATEGORIES,
   })
-  category: "animal" | "planta" | "hongo";
+  category: SpeciesCategory;
 
   @Column({ type: "varchar", length: 255 })
   habitat: string;
 
   @Column({
     type: "enum",
-    enum: ["CR", "EN", "VU", "NT", "LC", "EX"],
+    enum: SPECIES_STATUS,
   })
-  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+  status: SpeciesStatus;
 
   @ManyToMany(() => Region, (region) => region.species)
   @JoinTable({
@@ -63,10 +71,10 @@ export class Species {
   @Column({
     name: "current_trend",
     type: "enum",
-    enum: ["aumento", "descenso", "estable", "desconocido"],
+    enum: SPECIES_TREND,
     default: "desconocido",
   })
-  currentTrend: "aumento" | "descenso" | "estable" | "desconocido";
+  currentTrend: SpeciesTrend;
 
   @Column({ name: "image_url", type: "text" })
   imageUrl: string;

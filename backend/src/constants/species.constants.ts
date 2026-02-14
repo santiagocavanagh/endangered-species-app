@@ -1,14 +1,12 @@
 export const SPECIES_STATUS = ["CR", "EN", "VU", "NT", "LC", "EX"] as const;
 export const SPECIES_CATEGORIES = ["animal", "planta", "hongo"] as const;
-export const SPECIES_REGIONS = [
-  "America",
-  "Europa",
-  "Asia",
-  "Africa",
-  "Oceania",
-  "Global",
+export const SPECIES_TREND = [
+  "aumento",
+  "descenso",
+  "estable",
+  "desconocido",
 ] as const;
 
 export type SpeciesStatus = (typeof SPECIES_STATUS)[number];
 export type SpeciesCategory = (typeof SPECIES_CATEGORIES)[number];
-export type SpeciesRegion = (typeof SPECIES_REGIONS)[number];
+export type SpeciesTrend = (typeof SPECIES_TREND)[number];
