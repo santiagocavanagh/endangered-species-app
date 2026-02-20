@@ -1,11 +1,18 @@
+import {
+  SpeciesCategory,
+  SpeciesStatus,
+  SpeciesTrend,
+  PopulationOperator,
+} from "../constants/species.constants";
+
 export interface CreateDTO {
   scientificName: string;
   name: string;
-  category: "animal" | "planta" | "hongo";
+  category: SpeciesCategory;
   habitat: string;
-  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+  status: SpeciesStatus;
   populationValue: number;
-  populationOperator?: string;
+  populationOperator?: PopulationOperator;
   imageUrl: string;
   regionIds: number[];
   censusDate: Date;
@@ -14,11 +21,11 @@ export interface CreateDTO {
 export interface UpdateDTO {
   scientificName?: string;
   name?: string;
-  category?: "animal" | "planta" | "hongo";
+  category?: SpeciesCategory;
   habitat?: string;
-  status?: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+  status?: SpeciesStatus;
   populationValue?: number;
-  populationOperator?: string;
+  populationOperator?: PopulationOperator;
   imageUrl?: string;
   regionIds?: number[];
   censusDate?: Date;
@@ -28,9 +35,9 @@ export interface ResponseDTO {
   id: number;
   scientificName: string;
   name: string;
-  category: "animal" | "planta" | "hongo";
+  category: SpeciesCategory;
   habitat: string;
-  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+  status: SpeciesStatus;
 
   imageUrl: string;
 
@@ -40,5 +47,5 @@ export interface ResponseDTO {
   riskLevel: number;
   isCritical: boolean;
 
-  trendDirection: "up" | "down" | "stable" | "unknown";
+  trendDirection: SpeciesTrend;
 }

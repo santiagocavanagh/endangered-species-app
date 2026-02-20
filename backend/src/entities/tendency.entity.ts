@@ -13,12 +13,18 @@ export class Tendency {
   id: number;
 
   @Column({
+    name: "census_date",
     type: "date",
-    default: () => "CURRENT_DATE",
   })
-  date: Date;
+  censusDate: Date;
 
-  @Column({ type: "bigint" })
+  @Column({
+    type: "bigint",
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => Number(value),
+    },
+  })
   population: number;
 
   @ManyToOne(() => Species, (species) => species.tendencyHistory, {
