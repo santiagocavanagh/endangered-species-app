@@ -1,7 +1,7 @@
 import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species.entity";
 import { Region } from "../entities/region.entity";
-import { Tendency } from "../entities/tendency.entity";
+import { Tendency } from "../entities/population-census.entity";
 import { In } from "typeorm";
 import { CreateDTO, UpdateDTO } from "../dto/species.dto";
 

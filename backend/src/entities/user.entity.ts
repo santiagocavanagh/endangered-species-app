@@ -1,23 +1,46 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  Unique,
+} from "typeorm";
 import { Favorite } from "./favorites.entity";
 
+export enum UserRole {
+  ADMIN = "admin",
+  USER = "user",
+}
+
 @Entity("users")
+@Unique("uk_users_email", ["email"])
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id!: number;
 
-  @Column({ unique: true })
+  @Column({ type: "varchar", length: 255 })
   email!: string;
 
-  @Column({ nullable: true })
-  name!: string;
+  @Column({ type: "varchar", length: 150, nullable: true })
+  name!: string | null;
 
-  @Column()
+  @Column({ type: "varchar", length: 255 })
   password!: string;
 
-  @Column({ default: "user" })
-  role!: "admin" | "user";
+  @Column({
+    type: "enum",
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role!: UserRole;
+
+  @CreateDateColumn({
+    name: "created_at",
+    type: "timestamp",
+  })
+  createdAt!: Date;
 
   @OneToMany(() => Favorite, (favorite) => favorite.user)
-  favorites: Favorite[];
+  favorites!: Favorite[];
 }

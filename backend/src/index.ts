@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/data.source";
@@ -7,7 +6,6 @@ import authRoutes from "./routes/auth.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import speciesRoutes from "./routes/species.routes";
 
-dotenv.config();
 const app = express();
 
 app.use(
@@ -19,9 +17,14 @@ app.use(
   }),
 );
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/species", speciesRoutes);
+//test endpoint
+app.get("/", (_req, res) => {
+  res.send("backend Endangered Species funcionando!");
+});
 
 AppDataSource.initialize()
   .then(() => {
@@ -32,9 +35,7 @@ AppDataSource.initialize()
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
   })
-  .catch((error) => console.log("❌ Error de conexión:", error));
-
-//test endpoint
-app.get("/", (req, res) => {
-  res.send("¡El backend de Endangered Species está funcionando!");
-});
+  .catch((error) => {
+    console.error("❌ Error de conexión:", error);
+    process.exit(1);
+  });

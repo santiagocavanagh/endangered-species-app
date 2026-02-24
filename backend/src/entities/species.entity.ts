@@ -3,24 +3,21 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
+  ManyToOne,
   ManyToMany,
   JoinTable,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
+import { Taxonomy } from "./taxonomy.entity";
+import { PopulationCensus } from "./population-census.entity";
+import { StatusHistory } from "./status-history.entity";
 import { Region } from "./region.entity";
-import { Tendency } from "./tendency.entity";
-import { Favorite } from "./favorites.entity";
-import {
-  SPECIES_STATUS,
-  SPECIES_CATEGORIES,
-  SPECIES_TREND,
-  SpeciesTrend,
-  SpeciesStatus,
-  SpeciesCategory,
-} from "../constants/species.constants";
 
 @Entity("species")
 export class Species {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
   @Column({
@@ -31,59 +28,70 @@ export class Species {
   })
   scientificName: string;
 
-  @Column({ type: "varchar", length: 255 })
-  name: string;
-
   @Column({
-    type: "enum",
-    enum: SPECIES_CATEGORIES,
-  })
-  category: SpeciesCategory;
-
-  @Column({ type: "varchar", length: 255 })
-  habitat: string;
-
-  @Column({
-    type: "enum",
-    enum: SPECIES_STATUS,
-  })
-  status: SpeciesStatus;
-
-  @ManyToMany(() => Region, (region) => region.species)
-  @JoinTable({
-    name: "species_region",
-    joinColumn: { name: "species_id", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "region_id", referencedColumnName: "id" },
-  })
-  region: Region[];
-
-  @Column({ name: "population_value", type: "integer" })
-  populationValue: number;
-
-  @Column({
-    name: "population_operator",
+    name: "common_name",
     type: "varchar",
-    length: 5,
+    length: 255,
     nullable: true,
   })
-  populationOperator: string | null;
+  commonName: string | null;
 
   @Column({
-    name: "current_trend",
+    name: "iucn_status",
     type: "enum",
-    enum: SPECIES_TREND,
-    default: "desconocido",
+    enum: ["EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE"],
   })
-  currentTrend: SpeciesTrend;
+  iucnStatus: string;
 
-  @Column({ name: "image_url", type: "text" })
-  imageUrl: string;
+  @Column({
+    name: "description",
+    type: "text",
+    nullable: true,
+  })
+  description: string | null;
 
-  isVisible?: boolean;
+  @Column({
+    name: "habitat",
+    type: "text",
+    nullable: true,
+  })
+  habitat: string | null;
 
-  @OneToMany(() => Tendency, (tendency) => tendency.species, { cascade: true })
-  tendencyHistory: Tendency[];
+  @OneToMany(() => PopulationCensus, (census) => census.species)
+  populationCensus: PopulationCensus[];
 
-  @OneToMany(() => Favorite, (favorite) => favorite.species)
-  favorites: Favorite[];
+  @OneToMany(() => StatusHistory, (history) => history.species)
+  statusHistory: StatusHistory[];
+
+  @ManyToOne(() => Taxonomy, (taxonomy) => taxonomy.species, {
+    onDelete: "RESTRICT",
+  })
+  @JoinColumn({ name: "taxonomy_id" })
+  taxonomy: Taxonomy;
+
+  @ManyToMany(() => Region)
+  @JoinTable({
+    name: "species_region",
+    joinColumn: {
+      name: "species_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "region_id",
+      referencedColumnName: "id",
+    },
+  })
+  regions: Region[];
+
+  @CreateDateColumn({
+    name: "created_at",
+    type: "timestamp",
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    name: "updated_at",
+    type: "timestamp",
+  })
+  updatedAt: Date;
 }
