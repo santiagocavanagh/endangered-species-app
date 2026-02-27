@@ -15,6 +15,16 @@ export class SpeciesController {
     }
   }
 
+  // List all (public)
+  static async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await service.getAll();
+      return res.json(data.map(SpeciesMapper));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Rescued
   static async getRescued(req: Request, res: Response, next: NextFunction) {
     try {

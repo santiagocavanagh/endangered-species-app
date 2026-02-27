@@ -28,6 +28,12 @@ export class SpeciesService {
     });
   }
 
+  async getAll() {
+    return this.speciesRepo.find({
+      relations: ["regions", "taxonomy", "media", "populationCensus"],
+    });
+  }
+
   async getOne(id: number) {
     return this.speciesRepo.findOne({
       where: { id },
@@ -67,9 +73,21 @@ export class SpeciesService {
 
     // optionally create an initial census record
     if (data.population !== undefined && data.censusDate && data.sourceId) {
+      // accept censusDate as Date or ISO string
+      let censusDateStr: string;
+      if (typeof data.censusDate === "string") {
+        const parsed = new Date(data.censusDate);
+        if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
+        censusDateStr = parsed.toISOString().split("T")[0];
+      } else if (data.censusDate instanceof Date) {
+        censusDateStr = data.censusDate.toISOString().split("T")[0];
+      } else {
+        throw new Error("Invalid censusDate");
+      }
+
       await this.censusRepo.save({
         species: saved,
-        censusDate: data.censusDate.toISOString().split("T")[0],
+        censusDate: censusDateStr,
         population: data.population,
         source: { id: data.sourceId } as any,
         notes: data.notes ?? null,
@@ -114,9 +132,20 @@ export class SpeciesService {
     const updated = await this.speciesRepo.save(species);
 
     if (data.population !== undefined && data.censusDate && data.sourceId) {
+      let censusDateStr: string;
+      if (typeof data.censusDate === "string") {
+        const parsed = new Date(data.censusDate);
+        if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
+        censusDateStr = parsed.toISOString().split("T")[0];
+      } else if (data.censusDate instanceof Date) {
+        censusDateStr = data.censusDate.toISOString().split("T")[0];
+      } else {
+        throw new Error("Invalid censusDate");
+      }
+
       await this.censusRepo.save({
         species: updated,
-        censusDate: data.censusDate.toISOString().split("T")[0],
+        censusDate: censusDateStr,
         population: data.population,
         source: { id: data.sourceId } as any,
         notes: data.notes ?? null,

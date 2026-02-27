@@ -18,7 +18,7 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
     setLoading(true);
     try {
       const data = await api.login({ email, password });
-      login(data.token, data.role, data.email);
+      login(data.token, data.role, data.email, data.name);
       onClose();
     } catch (err) {
       alert("Credenciales incorrectas. Intenta de nuevo.");

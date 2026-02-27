@@ -12,6 +12,7 @@ import {
 const router = Router();
 
 // Public
+router.get("/", limiter, SpeciesController.getAll);
 router.get("/critical", limiter, SpeciesController.getCritical);
 router.get("/rescued", limiter, SpeciesController.getRescued);
 router.get(

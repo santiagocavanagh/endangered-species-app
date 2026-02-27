@@ -9,14 +9,14 @@ import {
 const router = Router();
 router.get("/", authenticateToken, favoriteController.getFavorites);
 router.post(
-  "/:speciesId",
+  "/:id",
   authenticateToken,
   validateSpeciesId,
   handleValidationErrors,
   favoriteController.addFavorite,
 );
 router.delete(
-  "/:speciesId",
+  "/:id",
   authenticateToken,
   validateSpeciesId,
   handleValidationErrors,

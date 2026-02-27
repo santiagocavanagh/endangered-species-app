@@ -63,7 +63,12 @@ export class AuthController {
         { expiresIn: ENV.JWT_EXPIRATION as any },
       );
 
-      return res.json({ token });
+      return res.json({
+        token,
+        role: user.role,
+        email: user.email,
+        name: user.name ?? null,
+      });
     } catch (error) {
       return res
         .status(500)

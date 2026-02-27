@@ -26,7 +26,7 @@ export const favoriteController = {
   addFavorite: async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
-      const { speciesId } = req.params;
+      const { id: speciesId } = req.params;
       const id = Number(speciesId);
 
       const favoriteRepo = AppDataSource.getRepository(Favorite);
@@ -58,7 +58,7 @@ export const favoriteController = {
   removeFavorite: async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
-      const { speciesId } = req.params;
+      const { id: speciesId } = req.params;
       const id = Number(speciesId);
 
       const favoriteRepo = AppDataSource.getRepository(Favorite);
