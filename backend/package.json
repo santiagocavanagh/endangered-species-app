@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development ts-node-dev src/index.ts",
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/index.js",
-    "seed": "ts-node src/seeds/seed.ts",
+    "seed": "ts-node src/seeds/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -35,11 +35,13 @@
     "@types/express-validator": "^2.20.33",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.0.6",
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   },
   "overrides": {
-  "minimatch": "^10.2.1"
-}
+    "minimatch": "^10.2.1"
+  }
 }
