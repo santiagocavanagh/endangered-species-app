@@ -1,7 +1,7 @@
 // GET /species
 export interface SpeciesQuery {
   region?: string;
-  category?: string;
+  taxonomy?: string;
   page?: string;
   limit?: string;
 }

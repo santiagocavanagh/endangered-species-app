@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Request, Response } from "express";
 import { AppDataSource } from "../config/data.source";
 import { User } from "../entities/user.entity";
 import { ENV } from "../config/env.config";
+import { AuthRequest } from "../types/auth.types";
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -17,7 +18,8 @@ export class AuthController {
           .status(400)
           .json({ error: "Email requerido y contraseña mín. 8 caracteres" });
       }
-      const finalRole = role === "admin" ? "user" : role || "user";
+      const allowedRoles = ["user", "admin"];
+      const finalRole = allowedRoles.includes(role) ? role : "user";
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const newUser = userRepository.create({
@@ -40,11 +42,18 @@ export class AuthController {
   };
 
   // Login de usuario
-  static login = async (req: Request, res: Response) => {
+  static login = async (req: AuthRequest, res: Response) => {
     const { email, password } = req.body;
     try {
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email y contraseña requeridos" });
+      }
       const user = await userRepository.findOneBy({ email });
-      if (!user || !(await bcrypt.compare(password, user.password))) {
+      if (!user) {
+        return res.status(401).json({ error: "Credenciales inválidas" });
+      }
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) {
         return res.status(401).json({ error: "Credenciales inválidas" });
       }
 
@@ -54,12 +63,7 @@ export class AuthController {
         { expiresIn: ENV.JWT_EXPIRATION as any },
       );
 
-      return res.json({
-        token,
-        role: user.role,
-        email: user.email,
-        name: user.name,
-      });
+      return res.json({ token });
     } catch (error) {
       return res
         .status(500)
@@ -68,7 +72,7 @@ export class AuthController {
   };
 
   // Actualizar perfil
-  static updateProfile = async (req: any, res: Response) => {
+  static updateProfile = async (req: AuthRequest, res: Response) => {
     const { name, password } = req.body;
     const userId = req.user?.id;
     try {

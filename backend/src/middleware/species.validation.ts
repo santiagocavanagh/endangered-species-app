@@ -1,6 +1,5 @@
 import { body, param, validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
-import { SPECIES_STATUS, SPECIES_CATEGORIES } from "../constants/species.constants";
 
 export const validateSpeciesId = [
   param("id")
@@ -12,29 +11,31 @@ export const validateSpeciesId = [
 ];
 
 export const validateCreateSpecies = [
-  body("name").isString().isLength({ min: 3, max: 100 }),
-
   body("scientificName").isString().isLength({ min: 3, max: 150 }),
 
-  body("status").isIn(SPECIES_STATUS),
+  body("commonName").optional().isString().isLength({ min: 3, max: 150 }),
 
-  body("category").isIn(SPECIES_CATEGORIES),
+  body("iucnStatus").isIn([
+    "EX",
+    "EW",
+    "CR",
+    "EN",
+    "VU",
+    "NT",
+    "LC",
+    "DD",
+    "NE",
+  ]),
 
-  body("habitat").isString().isLength({ min: 3, max: 150 }),
+  body("taxonomyId")
+    .isInt({ gt: 0 })
+    .withMessage("taxonomyId must be a positive integer"),
 
-  body("imageUrl").isURL(),
+  body("description").optional().isString(),
 
-  body("populationValue").optional().isInt({ gt: 0 }),
+  body("habitat").optional().isString(),
 
-  body("populationOperator")
-    .optional()
-    .isIn(["<", ">", "~"]),
-
-  body("currentTrend")
-    .optional()
-    .isString(),
-
-  body("region")
+  body("regionIds")
     .isArray({ min: 1 })
     .withMessage("Debe enviarse al menos una región")
     .custom((value) => {
@@ -43,28 +44,29 @@ export const validateCreateSpecies = [
       }
       return true;
     }),
+
+  body("population").optional().isInt({ gt: 0 }),
+  body("censusDate").optional().isISO8601(),
+  body("sourceId").optional().isInt({ gt: 0 }),
+  body("notes").optional().isString(),
 ];
 
 export const validateUpdateSpecies = [
-  body("name").optional().isString().isLength({ min: 3, max: 100 }),
+  body("scientificName").optional().isString().isLength({ min: 3, max: 150 }),
 
-  body("scientificName").optional().isString(),
+  body("commonName").optional().isString().isLength({ min: 3, max: 150 }),
 
-  body("status").optional().isIn(SPECIES_STATUS),
+  body("iucnStatus")
+    .optional()
+    .isIn(["EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE"]),
 
-  body("category").optional().isIn(SPECIES_CATEGORIES),
+  body("taxonomyId").optional().isInt({ gt: 0 }),
+
+  body("description").optional().isString(),
 
   body("habitat").optional().isString(),
 
-  body("imageUrl").optional().isURL(),
-
-  body("populationValue").optional().isInt({ gt: 0 }),
-
-  body("populationOperator").optional().isIn(["<", ">", "~"]),
-
-  body("currentTrend").optional().isString(),
-
-  body("region")
+  body("regionIds")
     .optional()
     .isArray()
     .custom((value) => {
@@ -73,12 +75,17 @@ export const validateUpdateSpecies = [
       }
       return true;
     }),
+
+  body("population").optional().isInt({ gt: 0 }),
+  body("censusDate").optional().isISO8601(),
+  body("sourceId").optional().isInt({ gt: 0 }),
+  body("notes").optional().isString(),
 ];
 
 export const handleValidationErrors = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const errors = validationResult(req);
 

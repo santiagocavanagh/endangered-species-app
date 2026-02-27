@@ -1,51 +1,58 @@
-import {
-  SpeciesCategory,
-  SpeciesStatus,
-  SpeciesTrend,
-  PopulationOperator,
-} from "../constants/species.constants";
-
 export interface CreateDTO {
   scientificName: string;
-  name: string;
-  category: SpeciesCategory;
-  habitat: string;
-  status: SpeciesStatus;
-  populationValue: number;
-  populationOperator?: PopulationOperator;
-  imageUrl: string;
+  commonName?: string;
+  iucnStatus: "EX" | "EW" | "CR" | "EN" | "VU" | "NT" | "LC" | "DD" | "NE";
+  taxonomyId: number;
+  description?: string;
+  habitat?: string;
   regionIds: number[];
-  censusDate: Date;
+
+  population?: number;
+  censusDate?: Date;
+  sourceId?: number;
+  notes?: string;
 }
 
 export interface UpdateDTO {
   scientificName?: string;
-  name?: string;
-  category?: SpeciesCategory;
+  commonName?: string;
+  iucnStatus?: "EX" | "EW" | "CR" | "EN" | "VU" | "NT" | "LC" | "DD" | "NE";
+  taxonomyId?: number;
+  description?: string;
   habitat?: string;
-  status?: SpeciesStatus;
-  populationValue?: number;
-  populationOperator?: PopulationOperator;
-  imageUrl?: string;
   regionIds?: number[];
+
+  population?: number;
   censusDate?: Date;
+  sourceId?: number;
+  notes?: string;
 }
 
 export interface ResponseDTO {
   id: number;
   scientificName: string;
-  name: string;
-  category: SpeciesCategory;
-  habitat: string;
-  status: SpeciesStatus;
-
-  imageUrl: string;
-
-  region: string[];
-
-  populationDisplay: string;
-  riskLevel: number;
-  isCritical: boolean;
-
-  trendDirection: SpeciesTrend;
+  name?: string | null;
+  commonName?: string | null;
+  iucnStatus: string;
+  status?: string;
+  taxonomyId: number;
+  taxonomy?: {
+    kingdom: string;
+    phylum?: string | null;
+    class_name?: string | null;
+    order_name?: string | null;
+    family?: string | null;
+    genus?: string | null;
+  };
+  description?: string | null;
+  habitat?: string | null;
+  regions: string[];
+  latestPopulation?: number;
+  latestCensusDate?: string;
+  media?: Array<{
+    mediaUrl: string;
+    mediaType: string;
+    credit?: string | null;
+    license?: string | null;
+  }>;
 }

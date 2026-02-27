@@ -27,18 +27,24 @@ export const favoriteController = {
     try {
       const userId = req.user.id;
       const { speciesId } = req.params;
+      const id = Number(speciesId);
 
       const favoriteRepo = AppDataSource.getRepository(Favorite);
+      const speciesRepo = AppDataSource.getRepository(Species);
+
+      const species = await speciesRepo.findOneBy({ id });
+      if (!species)
+        return res.status(404).json({ error: "Especie no encontrada" });
 
       const existing = await favoriteRepo.findOne({
-        where: { user: { id: userId }, species: { id: Number(speciesId) } },
+        where: { user: { id: userId }, species: { id } },
       });
 
       if (existing) return res.status(400).json({ error: "Ya es favorito" });
 
       const newFavorite = favoriteRepo.create({
         user: { id: userId } as User,
-        species: { id: Number(speciesId) } as Species,
+        species: { id } as Species,
       });
 
       await favoriteRepo.save(newFavorite);
@@ -53,10 +59,11 @@ export const favoriteController = {
     try {
       const userId = req.user.id;
       const { speciesId } = req.params;
+      const id = Number(speciesId);
 
       const favoriteRepo = AppDataSource.getRepository(Favorite);
       const favorite = await favoriteRepo.findOne({
-        where: { user: { id: userId }, species: { id: Number(speciesId) } },
+        where: { user: { id: userId }, species: { id } },
       });
 
       if (!favorite) return res.status(404).json({ error: "No encontrado" });

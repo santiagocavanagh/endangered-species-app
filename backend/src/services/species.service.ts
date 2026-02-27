@@ -1,36 +1,43 @@
 import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species.entity";
 import { Region } from "../entities/region.entity";
-import { Tendency } from "../entities/population-census.entity";
+import { PopulationCensus } from "../entities/population-census.entity";
+import { Taxonomy } from "../entities/taxonomy.entity";
 import { In } from "typeorm";
 import { CreateDTO, UpdateDTO } from "../dto/species.dto";
 
 export class SpeciesService {
   private speciesRepo = AppDataSource.getRepository(Species);
   private regionRepo = AppDataSource.getRepository(Region);
-  private tendencyRepo = AppDataSource.getRepository(Tendency);
+  private censusRepo = AppDataSource.getRepository(PopulationCensus);
+  private taxonomyRepo = AppDataSource.getRepository(Taxonomy);
 
   // READ
   async getCritical() {
+    // species with highest risk categories
     return this.speciesRepo.find({
-      where: { status: In(["EX", "CR", "EN", "VU"]) },
-      relations: ["region"],
-      order: { populationValue: "ASC" },
+      where: { iucnStatus: In(["EX", "CR", "EN", "VU"]) },
+      relations: ["regions", "taxonomy"],
     });
   }
 
   async getRescued() {
     return this.speciesRepo.find({
-      where: { status: In(["NT", "LC"]) },
-      relations: ["region"],
-      order: { populationValue: "DESC" },
+      where: { iucnStatus: In(["NT", "LC"]) },
+      relations: ["regions", "taxonomy"],
     });
   }
 
   async getOne(id: number) {
     return this.speciesRepo.findOne({
       where: { id },
-      relations: ["region", "tendencyHistory"],
+      relations: [
+        "regions",
+        "populationCensus",
+        "statusHistory",
+        "media",
+        "taxonomy",
+      ],
     });
   }
 
@@ -40,25 +47,34 @@ export class SpeciesService {
       id: In(data.regionIds),
     });
 
+    const taxonomy: Taxonomy | null = await this.taxonomyRepo.findOneBy({
+      id: data.taxonomyId,
+    });
+    if (!taxonomy) throw new Error("Taxonomy not found");
+
     const species = this.speciesRepo.create({
       scientificName: data.scientificName,
-      name: data.name,
-      category: data.category,
-      habitat: data.habitat,
-      status: data.status,
-      populationValue: data.populationValue,
-      populationOperator: data.populationOperator ?? null,
-      imageUrl: data.imageUrl,
-      region: regions,
+      commonName: data.commonName ?? null,
+      iucnStatus: data.iucnStatus,
+      taxonomy,
+      taxonomyId: data.taxonomyId,
+      description: data.description ?? null,
+      habitat: data.habitat ?? null,
+      regions: regions,
     });
 
     const saved = await this.speciesRepo.save(species);
 
-    await this.tendencyRepo.save({
-      species: saved,
-      date: data.censusDate,
-      population: data.populationValue,
-    });
+    // optionally create an initial census record
+    if (data.population !== undefined && data.censusDate && data.sourceId) {
+      await this.censusRepo.save({
+        species: saved,
+        censusDate: data.censusDate.toISOString().split("T")[0],
+        population: data.population,
+        source: { id: data.sourceId } as any,
+        notes: data.notes ?? null,
+      });
+    }
 
     return saved;
   }
@@ -67,51 +83,44 @@ export class SpeciesService {
   async update(id: number, data: UpdateDTO) {
     const species = await this.speciesRepo.findOne({
       where: { id },
-      relations: ["region"],
+      relations: ["regions", "taxonomy"],
     });
 
     if (!species) throw new Error("Species not found");
 
     if (data.regionIds) {
-      species.region = await this.regionRepo.findBy({
+      species.regions = await this.regionRepo.findBy({
         id: In(data.regionIds),
       });
     }
 
-    const previousPopulation = species.populationValue;
-
     Object.assign(species, {
       scientificName: data.scientificName ?? species.scientificName,
-      name: data.name ?? species.name,
-      category: data.category ?? species.category,
+      commonName: data.commonName ?? species.commonName,
+      iucnStatus: data.iucnStatus ?? species.iucnStatus,
+      description: data.description ?? species.description,
       habitat: data.habitat ?? species.habitat,
-      status: data.status ?? species.status,
-      populationValue: data.populationValue ?? species.populationValue,
-      populationOperator: data.populationOperator ?? species.populationOperator,
-      imageUrl: data.imageUrl ?? species.imageUrl,
     });
+
+    if (data.taxonomyId) {
+      const taxonomy: Taxonomy | null = await this.taxonomyRepo.findOneBy({
+        id: data.taxonomyId,
+      });
+      if (!taxonomy) throw new Error("Taxonomy not found");
+      species.taxonomy = taxonomy;
+      species.taxonomyId = data.taxonomyId;
+    }
 
     const updated = await this.speciesRepo.save(species);
 
-    // Si cambia población, registrar censo y recalcular tendencia
-    if (
-      data.populationValue !== undefined &&
-      data.populationValue !== previousPopulation &&
-      data.censusDate
-    ) {
-      await this.tendencyRepo.save({
+    if (data.population !== undefined && data.censusDate && data.sourceId) {
+      await this.censusRepo.save({
         species: updated,
-        date: data.censusDate,
-        population: data.populationValue,
+        censusDate: data.censusDate.toISOString().split("T")[0],
+        population: data.population,
+        source: { id: data.sourceId } as any,
+        notes: data.notes ?? null,
       });
-
-      if (data.populationValue > previousPopulation)
-        updated.currentTrend = "aumento";
-      else if (data.populationValue < previousPopulation)
-        updated.currentTrend = "descenso";
-      else updated.currentTrend = "estable";
-
-      await this.speciesRepo.save(updated);
     }
 
     return updated;

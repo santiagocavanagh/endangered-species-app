@@ -1,30 +1,38 @@
+import jwt from "jsonwebtoken";
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
-import { AuthRequest } from "../types/auth.types";
-import jwt from "jsonwebtoken";
+import { AuthRequest, TokenPayload } from "../types/auth.types";
 
 export const authenticateToken = (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  try {
+    const authHeader = req.headers.authorization;
 
-  if (!token)
-    return res.status(401).json({ error: "Acceso denegado! Falta Token" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Token requerido" });
+    }
 
-  jwt.verify(token, ENV.JWT_SECRET, (err, decoded: any) => {
-    if (err)
-      return res.status(403).json({ error: "Token inválido o expirado" });
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, ENV.JWT_SECRET) as TokenPayload;
+
+    if (!decoded.id || !decoded.email || !decoded.role) {
+      return res.status(403).json({ error: "Token inválido" });
+    }
 
     req.user = {
       id: decoded.id,
       email: decoded.email,
       role: decoded.role,
     };
+
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({ error: "Token inválido o expirado" });
+  }
 };
 
 export const isAdmin = (
@@ -32,11 +40,15 @@ export const isAdmin = (
   res: Response,
   next: NextFunction,
 ) => {
-  if (req.user?.role === "admin") {
-    return next();
+  if (!req.user) {
+    return res.status(401).json({ error: "No autenticado" });
   }
 
-  return res.status(403).json({
-    error: "Se requiere rol de administrador",
-  });
+  if (req.user.role !== "admin") {
+    return res.status(403).json({
+      error: "Se requiere rol de administrador",
+    });
+  }
+
+  next();
 };

@@ -7,16 +7,10 @@ import {
 } from "typeorm";
 import { Species } from "./species.entity";
 import { DataSource } from "./data-source.entity";
-
-export enum ConservationStatus {
-  CR = "CR",
-  EN = "EN",
-  VU = "VU",
-  NT = "NT",
-  LC = "LC",
-  EX = "EX",
-  EW = "EW",
-}
+import {
+  CONSERVATION_STATUSES,
+  ConservationStatus,
+} from "../constants/species.constants";
 
 @Entity("status_history")
 export class StatusHistory {
@@ -32,14 +26,14 @@ export class StatusHistory {
   @Column({
     name: "old_status",
     type: "enum",
-    enum: ConservationStatus,
+    enum: CONSERVATION_STATUSES,
   })
   oldStatus: ConservationStatus;
 
   @Column({
     name: "new_status",
     type: "enum",
-    enum: ConservationStatus,
+    enum: CONSERVATION_STATUSES,
   })
   newStatus: ConservationStatus;
 

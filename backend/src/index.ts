@@ -6,36 +6,71 @@ import authRoutes from "./routes/auth.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import speciesRoutes from "./routes/species.routes";
 
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled Rejection:", err);
+  process.exit(1);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
 const app = express();
+app.disable("x-powered-by");
+const allowedOrigins = [ENV.FRONTEND_URL];
 
 app.use(
   cors({
-    origin: ENV.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-app.use(express.json());
 
+// limit request body
+app.use(express.json({ limit: "100kb" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/species", speciesRoutes);
-//test endpoint
+
+// test endpoint
 app.get("/", (_req, res) => {
   res.send("backend Endangered Species funcionando!");
 });
 
-AppDataSource.initialize()
-  .then(() => {
+// manejo errores globales
+app.use(
+  (
+    err: any,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    console.error("Unhandled error middleware:", err);
+    res.status(500).json({ error: "Internal server error" });
+  },
+);
+
+async function bootstrap() {
+  try {
+    await AppDataSource.initialize();
     console.log("✅ Conexión exitosa a MySQL con TypeORM");
 
     const PORT = ENV.PORT;
+
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
-  })
-  .catch((error) => {
-    console.error("❌ Error de conexión:", error);
+  } catch (error) {
+    console.error("❌ Error al iniciar la aplicación:", error);
     process.exit(1);
-  });
+  }
+}
+
+bootstrap();

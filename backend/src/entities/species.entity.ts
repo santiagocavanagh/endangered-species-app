@@ -14,6 +14,8 @@ import { Taxonomy } from "./taxonomy.entity";
 import { PopulationCensus } from "./population-census.entity";
 import { StatusHistory } from "./status-history.entity";
 import { Region } from "./region.entity";
+import { Favorite } from "./favorites.entity";
+import { SpeciesMedia } from "./species-media.entity";
 
 @Entity("species")
 export class Species {
@@ -44,6 +46,12 @@ export class Species {
   iucnStatus: string;
 
   @Column({
+    name: "taxonomy_id",
+    type: "int",
+  })
+  taxonomyId: number;
+
+  @Column({
     name: "description",
     type: "text",
     nullable: true,
@@ -69,7 +77,7 @@ export class Species {
   @JoinColumn({ name: "taxonomy_id" })
   taxonomy: Taxonomy;
 
-  @ManyToMany(() => Region)
+  @ManyToMany(() => Region, (region) => region.species)
   @JoinTable({
     name: "species_region",
     joinColumn: {
@@ -82,6 +90,12 @@ export class Species {
     },
   })
   regions: Region[];
+
+  @OneToMany(() => Favorite, (fav) => fav.species)
+  favorites: Favorite[];
+
+  @OneToMany(() => SpeciesMedia, (media) => media.species)
+  media: SpeciesMedia[];
 
   @CreateDateColumn({
     name: "created_at",

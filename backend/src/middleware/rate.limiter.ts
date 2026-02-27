@@ -9,10 +9,7 @@ const limiter = rateLimit({
   ...options,
   windowMs: 15 * 60 * 1000,
   limit: 100,
-  message: {
-    status: 429,
-    message: "Demasiadas peticiones, intenta más tarde",
-  },
+  message: { error: "Demasiadas solicitudes, intenta más tarde" },
 });
 
 const loginLimiter = rateLimit({
