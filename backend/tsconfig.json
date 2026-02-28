@@ -27,6 +27,6 @@
     "sourceMap": true,                       // Ayuda a depurar (debug) el código original desde el compilado
     "declaration": true                      // Genera archivos de definición .d.ts
   },
-  "include": ["src/**/*"],                   // Solo compila lo que esté dentro de /src
+  "include": ["src/**/*", "../scripts/seeds"],                   // Solo compila lo que esté dentro de /src
   "exclude": ["node_modules", "**/*.spec.ts"] // Ignora librerías y archivos de prueba
 }

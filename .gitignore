@@ -46,6 +46,7 @@ ormconfig.json
 
 # --- SCRIPTS ---
 scripts/
+seeds/
 
 # --- REPORTES ---
 /REPORTES

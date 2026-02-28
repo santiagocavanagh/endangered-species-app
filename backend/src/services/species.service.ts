@@ -5,6 +5,7 @@ import { PopulationCensus } from "../entities/population-census.entity";
 import { Taxonomy } from "../entities/taxonomy.entity";
 import { In } from "typeorm";
 import { CreateDTO, UpdateDTO } from "../dto/species.dto";
+import { SpeciesMedia, MediaType } from "../entities/species-media.entity";
 
 export class SpeciesService {
   private speciesRepo = AppDataSource.getRepository(Species);
@@ -71,27 +72,43 @@ export class SpeciesService {
 
     const saved = await this.speciesRepo.save(species);
 
-    // optionally create an initial census record
-    if (data.population !== undefined && data.censusDate && data.sourceId) {
-      // accept censusDate as Date or ISO string
+    // optionally create an initial census record if population provided
+    if (data.population !== undefined) {
+      // accept censusDate as Date or ISO string, default to today
       let censusDateStr: string;
-      if (typeof data.censusDate === "string") {
-        const parsed = new Date(data.censusDate);
-        if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
-        censusDateStr = parsed.toISOString().split("T")[0];
-      } else if (data.censusDate instanceof Date) {
-        censusDateStr = data.censusDate.toISOString().split("T")[0];
+      if (data.censusDate) {
+        if (typeof data.censusDate === "string") {
+          const parsed = new Date(data.censusDate);
+          if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
+          censusDateStr = parsed.toISOString().split("T")[0];
+        } else if (data.censusDate instanceof Date) {
+          censusDateStr = data.censusDate.toISOString().split("T")[0];
+        } else {
+          throw new Error("Invalid censusDate");
+        }
       } else {
-        throw new Error("Invalid censusDate");
+        censusDateStr = new Date().toISOString().split("T")[0];
       }
 
       await this.censusRepo.save({
         species: saved,
         censusDate: censusDateStr,
         population: data.population,
-        source: { id: data.sourceId } as any,
+        source: data.sourceId ? ({ id: data.sourceId } as any) : null,
         notes: data.notes ?? null,
       });
+    }
+
+    // optionally create a media record for a provided imageUrl
+    if ((data as any).imageUrl) {
+      const mediaRepo = AppDataSource.getRepository(SpeciesMedia);
+      await mediaRepo.save({
+        species: saved,
+        mediaUrl: (data as any).imageUrl,
+        mediaType: MediaType.IMAGE,
+        credit: null,
+        license: null,
+      } as any);
     }
 
     return saved;
@@ -131,25 +148,40 @@ export class SpeciesService {
 
     const updated = await this.speciesRepo.save(species);
 
-    if (data.population !== undefined && data.censusDate && data.sourceId) {
+    if (data.population !== undefined) {
       let censusDateStr: string;
-      if (typeof data.censusDate === "string") {
-        const parsed = new Date(data.censusDate);
-        if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
-        censusDateStr = parsed.toISOString().split("T")[0];
-      } else if (data.censusDate instanceof Date) {
-        censusDateStr = data.censusDate.toISOString().split("T")[0];
+      if (data.censusDate) {
+        if (typeof data.censusDate === "string") {
+          const parsed = new Date(data.censusDate);
+          if (isNaN(parsed.getTime())) throw new Error("Invalid censusDate");
+          censusDateStr = parsed.toISOString().split("T")[0];
+        } else if (data.censusDate instanceof Date) {
+          censusDateStr = data.censusDate.toISOString().split("T")[0];
+        } else {
+          throw new Error("Invalid censusDate");
+        }
       } else {
-        throw new Error("Invalid censusDate");
+        censusDateStr = new Date().toISOString().split("T")[0];
       }
 
       await this.censusRepo.save({
         species: updated,
         censusDate: censusDateStr,
         population: data.population,
-        source: { id: data.sourceId } as any,
+        source: data.sourceId ? ({ id: data.sourceId } as any) : null,
         notes: data.notes ?? null,
       });
+    }
+
+    if ((data as any).imageUrl) {
+      const mediaRepo = AppDataSource.getRepository(SpeciesMedia);
+      await mediaRepo.save({
+        species: updated,
+        mediaUrl: (data as any).imageUrl,
+        mediaType: MediaType.IMAGE,
+        credit: null,
+        license: null,
+      } as any);
     }
 
     return updated;

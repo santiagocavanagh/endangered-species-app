@@ -3,6 +3,7 @@ import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "../../context/AuthContext";
 import { LoginModal } from "./login-modal";
+import { RegisterModal } from "./register-modal";
 import { ProfileModal } from "./profile-modal";
 
 interface HeaderProps {
@@ -14,6 +15,7 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
   const { user, logout, isAdmin } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false); //abrir el modal
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const categories = [
     { id: "animal" as const, label: "Animales" },
@@ -78,16 +80,23 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
               </button>
             </div>
           ) : (
-          <button onClick={() => setIsLoginOpen(true)}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 
-          transition-all shadow-sm font-medium text-sm">
-            Iniciar Sesión
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsLoginOpen(true)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 
+              transition-all shadow-sm font-medium text-sm">
+              Iniciar Sesión
+            </button>
+            <button onClick={() => setIsRegisterOpen(true)}
+              className="px-4 py-2 bg-white border border-emerald-600 text-emerald-600 rounded-md hover:bg-emerald-50 transition-all text-sm font-medium">
+              Registrarse
+            </button>
+          </div>
           )}
         </div>
       </div>
         
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </header>
     );

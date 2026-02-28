@@ -5,6 +5,8 @@ import { ENV } from "./config/env.config";
 import authRoutes from "./routes/auth.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import speciesRoutes from "./routes/species.routes";
+import regionRoutes from "./routes/region.routes";
+import taxonomyRoutes from "./routes/taxonomy.routes";
 
 process.on("unhandledRejection", (err) => {
   console.error("Unhandled Rejection:", err);
@@ -38,6 +40,8 @@ app.use(express.json({ limit: "100kb" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/species", speciesRoutes);
+app.use("/api/regions", regionRoutes);
+app.use("/api/taxonomies", taxonomyRoutes);
 
 // test endpoint
 app.get("/", (_req, res) => {
