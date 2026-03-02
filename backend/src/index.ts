@@ -57,6 +57,15 @@ app.use(
     _next: express.NextFunction,
   ) => {
     console.error("Unhandled error middleware:", err);
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const out = path.resolve(process.cwd(), "REPORTES", "backend_error.log");
+      const msg = `[${new Date().toISOString()}] ${err && err.stack ? err.stack : JSON.stringify(err)}\n`;
+      fs.appendFileSync(out, msg);
+    } catch (writeErr) {
+      console.error("Failed to write error log:", writeErr);
+    }
     res.status(500).json({ error: "Internal server error" });
   },
 );
