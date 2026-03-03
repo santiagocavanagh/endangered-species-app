@@ -24,7 +24,7 @@ export class SpeciesService {
 
   async getCritical() {
     return this.speciesRepo.find({
-      where: { iucnStatus: In(["EX", "CR", "EN", "VU"]) },
+      where: { iucnStatus: In(["CR", "EN", "VU"]) },
       relations: ["regions", "taxonomy"],
     });
   }
