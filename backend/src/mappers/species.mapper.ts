@@ -2,25 +2,34 @@ import { Species } from "../entities/species.entity";
 import { ResponseDTO } from "../dto/species.dto";
 
 export function SpeciesMapper(species: Species): ResponseDTO {
-  // determine most recent census if available
   let latestPop: number | undefined;
   let latestDate: string | undefined;
+  let latestSource: { id: number; name: string } | undefined;
+
   if (species.populationCensus && species.populationCensus.length) {
-    const sorted = [...species.populationCensus].sort((a, b) =>
-      b.censusDate.localeCompare(a.censusDate),
+    const sorted = [...species.populationCensus].sort(
+      (a, b) => b.censusDate.getTime() - a.censusDate.getTime(),
     );
-    latestPop = sorted[0].population;
-    latestDate = sorted[0].censusDate as unknown as string;
+    const latest = sorted[0];
+
+    latestPop = latest.population;
+    latestDate = latest.censusDate.toISOString().split("T")[0];
+
+    if (latest.source) {
+      latestSource = {
+        id: latest.source.id,
+        name: latest.source.name,
+      };
+    }
   }
 
   return {
     id: species.id,
     scientificName: species.scientificName,
-    name: species.commonName,
     commonName: species.commonName,
     iucnStatus: species.iucnStatus,
-    status: species.iucnStatus,
     taxonomyId: species.taxonomyId,
+
     taxonomy: species.taxonomy
       ? {
           kingdom: species.taxonomy.kingdom,
@@ -31,11 +40,15 @@ export function SpeciesMapper(species: Species): ResponseDTO {
           genus: species.taxonomy.genus,
         }
       : undefined,
+
     description: species.description,
     habitat: species.habitat,
     regions: species.regions?.map((r) => r.name) ?? [],
+
     latestPopulation: latestPop,
     latestCensusDate: latestDate,
+    source: latestSource,
+
     media: species.media?.map((m) => ({
       mediaUrl: m.mediaUrl,
       mediaType: m.mediaType,

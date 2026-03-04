@@ -15,13 +15,13 @@ export const validateCreateSpecies = [
   body("scientificName")
     .trim()
     .notEmpty()
-    .isString()
+    .withMessage("scientificName es requerido")
     .isLength({ min: 3, max: 75 }),
 
   body("commonName").optional().trim().isString().isLength({ min: 3, max: 75 }),
 
   body("iucnStatus")
-    .isIn([CONSERVATION_STATUSES])
+    .isIn(CONSERVATION_STATUSES)
     .withMessage("Estado de conservación inválido"),
 
   body("taxonomyId")
@@ -36,16 +36,64 @@ export const validateCreateSpecies = [
   body("regionIds")
     .isArray({ min: 1 })
     .withMessage("Debe enviarse al menos una región")
-    .custom((value) => {
-      if (!value.every((id: any) => Number.isInteger(id))) {
-        throw new Error("Las regiones deben ser IDs numéricos");
+    .bail()
+    .custom((value: unknown) => {
+      if (!Array.isArray(value)) {
+        throw new Error("Regiones incompletas");
       }
+
+      if (
+        !value.every(
+          (id) => typeof id === "number" && Number.isInteger(id) && id > 0,
+        )
+      ) {
+        throw new Error("Respetar IDs numéricos positivos");
+      }
+
       return true;
+    })
+    .customSanitizer((value: unknown) => {
+      if (!Array.isArray(value)) return value;
+      return value.map((id) => Number(id));
     }),
 
+  body("population")
+    .optional()
+    .isInt({ gt: 0, lt: 1000000000000 })
+    .withMessage("poblacion debe ser entero positivo razonable")
+    .toInt(),
+
+  body("censusDate").optional().isISO8601().toDate(),
+
+  body().custom((body) => {
+    if (body.population && !body.censusDate) {
+      throw new Error("poblacion y fecha de censo obligatorios");
+    }
+    return true;
+  }),
+
+  body("sourceId").optional().isInt({ gt: 0 }).toInt(),
+  body("notes").optional().isString(),
+];
+
+export const validateUpdateSpecies = [
+  body("scientificName").optional().trim().isLength({ min: 3, max: 75 }),
+
+  body("commonName").optional().trim().isString().isLength({ min: 3, max: 75 }),
+
+  body("iucnStatus").optional().isIn(CONSERVATION_STATUSES),
+
+  body("taxonomyId").optional().isInt({ gt: 0 }),
+
+  body("description").optional().isString(),
+
+  body("habitat").optional().isString(),
+
   body("regionIds")
+    .optional()
     .isArray({ min: 1 })
-    .withMessage("Debe enviarse al menos una región")
+    .withMessage("regionIds no puede ser vacío")
+    .bail()
     .custom((value) => {
       if (
         !value.every(
@@ -58,38 +106,15 @@ export const validateCreateSpecies = [
     })
     .customSanitizer((value) => value.map((id: any) => Number(id))),
 
-  body("population").optional().isInt({ gt: 0 }).toInt(),
+  body("population").optional().isInt({ gt: 0, lt: 1000000000000 }).toInt(),
   body("censusDate").optional().isISO8601().toDate(),
+  body().custom((body) => {
+    if (body.population && !body.censusDate) {
+      throw new Error("Si se envía population, censusDate es obligatorio");
+    }
+    return true;
+  }),
   body("sourceId").optional().isInt({ gt: 0 }).toInt(),
-  body("notes").optional().isString(),
-];
-
-export const validateUpdateSpecies = [
-  body("scientificName").optional().isString().isLength({ min: 3, max: 150 }),
-
-  body("commonName").optional().isString().isLength({ min: 3, max: 150 }),
-
-  body("iucnStatus").optional().isIn([CONSERVATION_STATUSES]),
-
-  body("taxonomyId").optional().isInt({ gt: 0 }),
-
-  body("description").optional().isString(),
-
-  body("habitat").optional().isString(),
-
-  body("regionIds")
-    .optional()
-    .isArray({ min: 1 })
-    .custom((value) => {
-      if (!value.every((id: any) => Number.isInteger(id))) {
-        throw new Error("Las regiones deben ser IDs numéricos");
-      }
-      return true;
-    }),
-
-  body("population").optional().isInt({ gt: 0 }),
-  body("censusDate").optional().isISO8601(),
-  body("sourceId").optional().isInt({ gt: 0 }),
   body("notes").optional().isString(),
 ];
 

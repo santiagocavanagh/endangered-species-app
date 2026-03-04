@@ -13,5 +13,5 @@ export const CONSERVATION_STATUSES = [
 ] as const;
 
 export type SpeciesCategory = (typeof SPECIES_CATEGORIES)[number];
-export type PopulationOperator = "<" | ">" | "<=" | ">=" | "~";
-export type ConservationStatus = "CR" | "EN" | "VU" | "NT" | "LC" | "EX" | "EW";
+export type PopulationOperator = (typeof POPULATION_OPERATORS)[number];
+export type ConservationStatus = (typeof CONSERVATION_STATUSES)[number];

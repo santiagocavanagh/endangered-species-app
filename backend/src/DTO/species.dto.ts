@@ -1,41 +1,20 @@
-export interface CreateDTO {
-  scientificName: string;
-  commonName?: string;
-  iucnStatus: "EX" | "EW" | "CR" | "EN" | "VU" | "NT" | "LC" | "DD" | "NE";
-  taxonomyId: number;
-  description?: string;
-  habitat?: string;
-  regionIds: number[];
+import { z } from "zod";
+import {
+  createSpeciesSchema,
+  updateSpeciesSchema,
+} from "../schemas/species.schema";
 
-  population?: number;
-  censusDate?: Date;
-  sourceId?: number;
-  notes?: string;
-}
+export type CreateSpeciesDTO = z.infer<typeof createSpeciesSchema>;
 
-export interface UpdateDTO {
-  scientificName?: string;
-  commonName?: string;
-  iucnStatus?: "EX" | "EW" | "CR" | "EN" | "VU" | "NT" | "LC" | "DD" | "NE";
-  taxonomyId?: number;
-  description?: string;
-  habitat?: string;
-  regionIds?: number[];
-
-  population?: number;
-  censusDate?: Date;
-  sourceId?: number;
-  notes?: string;
-}
+export type UpdateSpeciesDTO = z.infer<typeof updateSpeciesSchema>;
 
 export interface ResponseDTO {
   id: number;
   scientificName: string;
-  name?: string | null;
   commonName?: string | null;
   iucnStatus: string;
-  status?: string;
   taxonomyId: number;
+
   taxonomy?: {
     kingdom: string;
     phylum?: string | null;
@@ -44,11 +23,21 @@ export interface ResponseDTO {
     family?: string | null;
     genus?: string | null;
   };
+
   description?: string | null;
   habitat?: string | null;
   regions: string[];
+
   latestPopulation?: number;
-  latestCensusDate?: string;
+  latestCensus?: {
+    population: number;
+    date: string;
+    source?: {
+      id: number;
+      name: string;
+    };
+  };
+
   media?: Array<{
     mediaUrl: string;
     mediaType: string;

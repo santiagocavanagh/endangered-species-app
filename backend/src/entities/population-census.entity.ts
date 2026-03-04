@@ -23,7 +23,7 @@ export class PopulationCensus {
   species: Species;
 
   @Column({ name: "census_date", type: "date" })
-  censusDate: string;
+  censusDate: Date;
 
   @Column({ type: "bigint" })
   population: number;
