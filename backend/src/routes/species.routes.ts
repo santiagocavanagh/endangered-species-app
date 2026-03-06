@@ -1,57 +1,65 @@
 import { Router } from "express";
-import { SpeciesController } from "../controllers/species.controller";
 import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
 import { limiter } from "../middleware/rate.limiter";
 import {
-  validateSpeciesId,
-  validateCreateSpecies,
-  validateUpdateSpecies,
-  handleValidationErrors,
-} from "../middleware/species.validation";
+  createSpeciesSchema,
+  speciesIdParamSchema,
+  speciesQuerySchema,
+  updateSpeciesSchema,
+} from "../schemas/species.schema";
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from "../middleware/validate.middleware";
+import { SpeciesController } from "../controllers/species.controller";
 
 const router = Router();
 
 // User
-router.get("/", limiter, SpeciesController.getAll);
-router.get("/critical", limiter, SpeciesController.getCritical);
-router.get("/rescued", limiter, SpeciesController.getRescued);
 router.get(
-  "/:id",
+  "/species",
   limiter,
-  validateSpeciesId,
-  handleValidationErrors,
-  SpeciesController.getOne,
+  validateQuery(speciesQuerySchema),
+  SpeciesController.getAll,
 );
 
+router.get("/species/critical", limiter, SpeciesController.getCritical);
+router.get("/species/rescued", limiter, SpeciesController.getRescued);
+
+router.get(
+  "/species/:id",
+  limiter,
+  validateParams(speciesIdParamSchema),
+  SpeciesController.getOne,
+);
 // Admin
 router.post(
-  "/",
+  "/species",
+  limiter,
   authenticateToken,
   isAdmin,
-  limiter,
-  validateCreateSpecies,
-  handleValidationErrors,
+  validateBody(createSpeciesSchema),
   SpeciesController.create,
 );
 
-router.put(
-  "/:id",
+router.patch(
+  "/species/:id",
+  limiter,
   authenticateToken,
   isAdmin,
-  limiter,
-  validateSpeciesId,
-  validateUpdateSpecies,
-  handleValidationErrors,
+  validateParams(speciesIdParamSchema),
+  validateBody(updateSpeciesSchema),
   SpeciesController.update,
 );
 
 router.delete(
-  "/:id",
+  "/species/:id",
+  limiter,
   authenticateToken,
   isAdmin,
-  limiter,
-  validateSpeciesId,
-  handleValidationErrors,
+  validateParams(speciesIdParamSchema),
   SpeciesController.delete,
 );
+
 export default router;

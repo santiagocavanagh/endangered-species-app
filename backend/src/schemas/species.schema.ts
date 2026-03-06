@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { CONSERVATION_STATUSES } from "../constants/species.constants";
 
+export const speciesIdParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+export const speciesQuerySchema = z.object({
+  region: z.string().optional(),
+  taxonomy: z.string().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().optional(),
+});
+
 export const createSpeciesSchema = z
   .object({
     scientificName: z.string().min(3).max(75),
@@ -23,12 +34,12 @@ export const createSpeciesSchema = z
 
     notes: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      if (data.population && !data.censusDate) return false;
-      return true;
-    },
-    { message: "Si se envía population, censusDate es obligatorio" },
-  );
+  .refine((data) => !(data.population !== undefined && !data.censusDate), {
+    message: "Al enviar numero de poblacion, fecha de censo es obligatorio",
+  });
 
-export const updateSpeciesSchema = createSpeciesSchema.partial();
+export const updateSpeciesSchema = createSpeciesSchema
+  .partial()
+  .refine((data) => !(data.population !== undefined && !data.censusDate), {
+    message: "Al enviar numero de poblacion, fecha de censo es obligatorio",
+  });
