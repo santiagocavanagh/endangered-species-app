@@ -2,26 +2,7 @@ import { Species } from "../entities/species.entity";
 import { ResponseDTO } from "../dto/species.dto";
 
 export function SpeciesMapper(species: Species): ResponseDTO {
-  let latestPop: number | undefined;
-  let latestDate: string | undefined;
-  let latestSource: { id: number; name: string } | undefined;
-
-  if (species.populationCensus && species.populationCensus.length) {
-    const sorted = [...species.populationCensus].sort(
-      (a, b) => b.censusDate.getTime() - a.censusDate.getTime(),
-    );
-    const latest = sorted[0];
-
-    latestPop = latest.population;
-    latestDate = latest.censusDate.toISOString().split("T")[0];
-
-    if (latest.source) {
-      latestSource = {
-        id: latest.source.id,
-        name: latest.source.name,
-      };
-    }
-  }
+  const latest = species.populationCensus?.[0];
 
   return {
     id: species.id,
@@ -43,17 +24,30 @@ export function SpeciesMapper(species: Species): ResponseDTO {
 
     description: species.description,
     habitat: species.habitat,
+
     regions: species.regions?.map((r) => r.name) ?? [],
 
-    latestPopulation: latestPop,
-    latestCensusDate: latestDate,
-    source: latestSource,
+    latestPopulation: latest?.population,
 
-    media: species.media?.map((m) => ({
-      mediaUrl: m.mediaUrl,
-      mediaType: m.mediaType,
-      credit: m.credit,
-      license: m.license,
-    })),
+    latestCensus: latest
+      ? {
+          population: latest.population,
+          date: latest.censusDate.toISOString().split("T")[0],
+          source: latest.source
+            ? {
+                id: latest.source.id,
+                name: latest.source.name,
+              }
+            : undefined,
+        }
+      : undefined,
+
+    media:
+      species.media?.map((m) => ({
+        mediaUrl: m.mediaUrl,
+        mediaType: m.mediaType,
+        credit: m.credit,
+        license: m.license,
+      })) ?? [],
   };
 }

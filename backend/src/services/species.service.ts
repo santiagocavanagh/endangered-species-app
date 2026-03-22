@@ -15,7 +15,7 @@ export class SpeciesService {
   private regionRepo = AppDataSource.getRepository(Region);
   private taxonomyRepo = AppDataSource.getRepository(Taxonomy);
 
-  //QUERIES SPECIES
+  //Query
   async getCritical() {
     return this.speciesRepo.find({
       where: { iucnStatus: In(["CR", "EN", "VU"]) },
@@ -37,27 +37,35 @@ export class SpeciesService {
   }
 
   async getOne(id: number) {
-    const species = await this.speciesRepo.findOne({
-      where: { id },
-      relations: [...this.baseRelations(), "statusHistory"],
-    });
+    const qb = this.speciesRepo
+      .createQueryBuilder("species")
+      .leftJoinAndSelect("species.regions", "regions")
+      .leftJoinAndSelect("species.taxonomy", "taxonomy")
+      .leftJoinAndSelect("species.media", "media")
+      .leftJoinAndSelect("species.statusHistory", "statusHistory")
+      .leftJoinAndSelect(
+        "species.populationCensus",
+        "census",
+        `census.id = (
+        SELECT pc.id FROM population_census pc
+        WHERE pc.species_id = species.id
+        ORDER BY pc.censusDate DESC
+        LIMIT 1
+      )`,
+      )
+      .leftJoinAndSelect("census.source", "source")
+      .where("species.id = :id", { id });
 
-    if (!species) {
-      throw new Error("Especie no encontrada");
-    }
-
-    return species;
+    return qb.getOne();
   }
 
-  //CREATE SPECIES
+  //Create
   async create(data: CreateSpeciesDTO) {
-    const uniqueRegionIds = [...new Set(data.regionIds)];
-
     const regions = await this.regionRepo.findBy({
-      id: In(uniqueRegionIds),
+      id: In(data.regionIds),
     });
 
-    if (regions.length !== uniqueRegionIds.length) {
+    if (regions.length !== data.regionIds.length) {
       throw new Error("Regiones no encontradas");
     }
 
@@ -93,13 +101,10 @@ export class SpeciesService {
       },
     );
 
-    return this.speciesRepo.findOne({
-      where: { id: savedSpecies.id },
-      relations: this.baseRelations(),
-    });
+    return this.getOne(savedSpecies.id);
   }
 
-  //UPDATE SPECIES
+  //Update
   async update(id: number, data: UpdateSpeciesDTO) {
     const species = await this.speciesRepo.findOne({
       where: { id },
@@ -110,14 +115,12 @@ export class SpeciesService {
       throw new Error("Especie no encontrada");
     }
 
-    if (data.regionIds && data.regionIds.length > 0) {
-      const uniqueRegionIds = [...new Set(data.regionIds)];
-
+    if (data.regionIds) {
       const regions = await this.regionRepo.findBy({
-        id: In(uniqueRegionIds),
+        id: In(data.regionIds),
       });
 
-      if (regions.length !== uniqueRegionIds.length) {
+      if (regions.length !== data.regionIds.length) {
         throw new Error("Regiones no encontradas");
       }
 
@@ -137,22 +140,15 @@ export class SpeciesService {
       species.taxonomyId = taxonomy.id;
     }
 
-    const {
-      regionIds,
-      taxonomyId,
-      population,
-      censusDate,
-      sourceId,
-      notes,
-      ...safeData
-    } = data;
-
-    Object.assign(species, safeData);
+    species.scientificName = data.scientificName ?? species.scientificName;
+    species.commonName = data.commonName ?? species.commonName;
+    species.iucnStatus = data.iucnStatus ?? species.iucnStatus;
+    species.description = data.description ?? species.description;
+    species.habitat = data.habitat ?? species.habitat;
 
     const updatedSpecies = await AppDataSource.manager.transaction(
       async (manager) => {
         const speciesRepo = manager.getRepository(Species);
-
         const updated = await speciesRepo.save(species);
 
         if (data.population !== undefined) {
@@ -163,13 +159,10 @@ export class SpeciesService {
       },
     );
 
-    return this.speciesRepo.findOne({
-      where: { id: updatedSpecies.id },
-      relations: this.baseRelations(),
-    });
+    return this.getOne(updatedSpecies.id);
   }
 
-  //DELETE SPECIES
+  //Delete
   async delete(id: number) {
     const species = await this.speciesRepo.findOneBy({ id });
 
@@ -177,10 +170,9 @@ export class SpeciesService {
       throw new Error("Especie no encontrada");
     }
 
-    await this.speciesRepo.delete(id);
+    await this.speciesRepo.remove(species);
   }
 
-  //PRIVATE HELPERS
   private baseRelations() {
     return [
       "regions",
@@ -198,20 +190,12 @@ export class SpeciesService {
   ) {
     const censusRepo = manager.getRepository(PopulationCensus);
 
-    if (typeof data.population !== "number") {
-      throw new Error("Population inválida");
-    }
-
     const source = await this.resolveSource(manager, data.sourceId);
-
-    const censusDate = data.censusDate ? new Date(data.censusDate) : new Date();
-
-    censusDate.setHours(0, 0, 0, 0);
 
     await censusRepo.save({
       species,
-      censusDate,
-      population: data.population,
+      censusDate: data.censusDate ?? new Date(),
+      population: data.population!,
       source,
       notes: data.notes ?? null,
     });
@@ -228,18 +212,17 @@ export class SpeciesService {
       if (source) return source;
     }
 
-    await dataSourceRepo.upsert(
-      {
+    let defaultSource = await dataSourceRepo.findOneBy({
+      name: "user-submitted",
+    });
+
+    if (!defaultSource) {
+      defaultSource = await dataSourceRepo.save({
         name: "user-submitted",
         url: null,
         type: DataSourceType.OTHER,
-      },
-      ["name"],
-    );
-
-    const defaultSource = await dataSourceRepo.findOneByOrFail({
-      name: "user-submitted",
-    });
+      });
+    }
 
     return defaultSource;
   }

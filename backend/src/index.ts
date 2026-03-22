@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { errorHandler } from "./middleware/error.middleware";
 import { AppDataSource } from "./config/data.source";
 import { ENV } from "./config/env.config";
 import authRoutes from "./routes/auth.routes";
@@ -34,6 +35,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// error handling
+app.use(errorHandler);
 
 // limit request body
 app.use(express.json({ limit: "100kb" }));
