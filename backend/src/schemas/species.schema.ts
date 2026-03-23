@@ -19,27 +19,41 @@ export const createSpeciesSchema = z
 
     iucnStatus: z.enum(CONSERVATION_STATUSES),
 
-    taxonomyId: z.number().int().positive(),
+    taxonomyId: z.coerce.number().int().positive(),
 
     description: z.string().optional(),
     habitat: z.string().optional(),
 
-    regionIds: z.array(z.number().int().positive()).min(1),
+    regionIds: z.array(z.coerce.number().int().positive()).min(1),
 
-    population: z.number().int().positive().max(1_000_000_000_000).optional(),
+    population: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(1_000_000_000_000)
+      .optional(),
 
     censusDate: z.coerce.date().optional(),
 
-    sourceId: z.number().int().positive().optional(),
+    sourceId: z.coerce.number().int().positive().optional(),
 
     notes: z.string().optional(),
   })
+  .strict()
   .refine((data) => !(data.population !== undefined && !data.censusDate), {
-    message: "Al enviar numero de poblacion, fecha de censo es obligatorio",
+    message: "censusDate es obligatorio si population está presente",
+    path: ["censusDate"],
   });
 
 export const updateSpeciesSchema = createSpeciesSchema
   .partial()
+  .strict()
   .refine((data) => !(data.population !== undefined && !data.censusDate), {
-    message: "Al enviar numero de poblacion, fecha de censo es obligatorio",
+    message: "censusDate es obligatorio si population está presente",
+    path: ["censusDate"],
   });
+
+export type SpeciesIdParams = z.infer<typeof speciesIdParamSchema>;
+export type SpeciesQuery = z.infer<typeof speciesQuerySchema>;
+export type CreateSpeciesBody = z.infer<typeof createSpeciesSchema>;
+export type UpdateSpeciesBody = z.infer<typeof updateSpeciesSchema>;

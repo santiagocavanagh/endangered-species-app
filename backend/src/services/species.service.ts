@@ -9,6 +9,8 @@ import {
   DataSourceType,
 } from "../entities/data-source.entity";
 import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../dto/species.dto";
+import { SpeciesQuery } from "../schemas/species.schema";
+import { NotFoundError } from "../errors/http.error";
 
 export class SpeciesService {
   private speciesRepo = AppDataSource.getRepository(Species);
@@ -30,33 +32,73 @@ export class SpeciesService {
     });
   }
 
-  async getAll() {
-    return this.speciesRepo.find({
-      relations: this.baseRelations(),
-    });
-  }
+  async getAll(query: SpeciesQuery) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
 
-  async getOne(id: number) {
     const qb = this.speciesRepo
       .createQueryBuilder("species")
       .leftJoinAndSelect("species.regions", "regions")
       .leftJoinAndSelect("species.taxonomy", "taxonomy")
-      .leftJoinAndSelect("species.media", "media")
-      .leftJoinAndSelect("species.statusHistory", "statusHistory")
-      .leftJoinAndSelect(
-        "species.populationCensus",
-        "census",
-        `census.id = (
-        SELECT pc.id FROM population_census pc
-        WHERE pc.species_id = species.id
-        ORDER BY pc.censusDate DESC
-        LIMIT 1
-      )`,
-      )
-      .leftJoinAndSelect("census.source", "source")
-      .where("species.id = :id", { id });
+      .leftJoinAndSelect("species.media", "media");
 
-    return qb.getOne();
+    if (query.region) {
+      qb.andWhere("LOWER(regions.name) LIKE LOWER(:region)", {
+        region: `%${query.region}%`,
+      });
+    }
+
+    if (query.taxonomy) {
+      qb.andWhere("LOWER(taxonomy.kingdom) LIKE LOWER(:taxonomy)", {
+        taxonomy: `%${query.taxonomy}%`,
+      });
+    }
+
+    qb.orderBy("species.id", "DESC");
+
+    qb.skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getOne(id: number) {
+    const species = await this.speciesRepo.findOne({
+      where: { id },
+      relations: [
+        "regions",
+        "taxonomy",
+        "media",
+        "statusHistory",
+        "populationCensus",
+        "populationCensus.source",
+      ],
+    });
+
+    if (!species) {
+      throw new NotFoundError("Especie no encontrada");
+    }
+
+    // ultimo census
+    const latest = species.populationCensus?.length
+      ? species.populationCensus.sort(
+          (a, b) => b.censusDate.getTime() - a.censusDate.getTime(),
+        )[0]
+      : null;
+
+    return {
+      ...species,
+      populationCensus: latest ? [latest] : [],
+    };
   }
 
   //Create
@@ -66,7 +108,7 @@ export class SpeciesService {
     });
 
     if (regions.length !== data.regionIds.length) {
-      throw new Error("Regiones no encontradas");
+      throw new NotFoundError("Regiones no encontradas");
     }
 
     const taxonomy = await this.taxonomyRepo.findOneBy({
@@ -74,7 +116,7 @@ export class SpeciesService {
     });
 
     if (!taxonomy) {
-      throw new Error("Taxonomía no encontrada");
+      throw new NotFoundError("Taxonomía no encontrada");
     }
 
     const species = this.speciesRepo.create({
@@ -112,7 +154,7 @@ export class SpeciesService {
     });
 
     if (!species) {
-      throw new Error("Especie no encontrada");
+      throw new NotFoundError("Especie no encontrada");
     }
 
     if (data.regionIds) {
@@ -121,7 +163,7 @@ export class SpeciesService {
       });
 
       if (regions.length !== data.regionIds.length) {
-        throw new Error("Regiones no encontradas");
+        throw new NotFoundError("Regiones no encontradas");
       }
 
       species.regions = regions;
@@ -133,7 +175,7 @@ export class SpeciesService {
       });
 
       if (!taxonomy) {
-        throw new Error("Taxonomía no encontrada");
+        throw new NotFoundError("Taxonomía no encontrada");
       }
 
       species.taxonomy = taxonomy;
@@ -167,7 +209,7 @@ export class SpeciesService {
     const species = await this.speciesRepo.findOneBy({ id });
 
     if (!species) {
-      throw new Error("Especie no encontrada");
+      throw new NotFoundError("Especie no encontrada");
     }
 
     await this.speciesRepo.remove(species);
