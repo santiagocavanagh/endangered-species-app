@@ -1,27 +1,25 @@
-import { Request, Response } from "express";
-import { AppDataSource } from "../config/data.source";
-import { Taxonomy } from "../entities/taxonomy.entity";
+import { Request, Response, NextFunction } from "express";
+import { TaxonomyService } from "../services/taxonomy.service";
 
-const taxonomyRepo = AppDataSource.getRepository(Taxonomy);
+const service = new TaxonomyService();
 
 export const TaxonomyController = {
-  getAll: async (_req: Request, res: Response) => {
+  getAll: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const list = await taxonomyRepo.find();
-      res.json(list);
+      const data = await service.getAll();
+      return res.json(data);
     } catch (error) {
-      res.status(500).json({ error: "Error al obtener taxonomías" });
+      next(error);
     }
   },
 
-  getOne: async (req: Request, res: Response) => {
+  getOne: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = Number(req.params.id);
-      const item = await taxonomyRepo.findOneBy({ id });
-      if (!item) return res.status(404).json({ error: "No encontrado" });
-      res.json(item);
+      const data = await service.getOne(id);
+      return res.json(data);
     } catch (error) {
-      res.status(500).json({ error: "Error al obtener taxonomía" });
+      next(error);
     }
   },
 };

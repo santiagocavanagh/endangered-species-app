@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { favoriteController } from "../controllers/favorite.controller";
+import { FavoriteController } from "../controllers/favorite.controller";
 import { authenticateToken } from "../middleware/auth.middleware";
 import {
   validateSpeciesId,
@@ -7,20 +7,20 @@ import {
 } from "../middleware/species.validation";
 
 const router = Router();
-router.get("/", authenticateToken, favoriteController.getFavorites);
+router.get("/", authenticateToken, FavoriteController.getFavorites);
 router.post(
   "/:id",
   authenticateToken,
   validateSpeciesId,
   handleValidationErrors,
-  favoriteController.addFavorite,
+  FavoriteController.addFavorite,
 );
 router.delete(
   "/:id",
   authenticateToken,
   validateSpeciesId,
   handleValidationErrors,
-  favoriteController.removeFavorite,
+  FavoriteController.removeFavorite,
 );
 
 export default router;

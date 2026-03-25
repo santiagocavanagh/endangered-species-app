@@ -8,12 +8,6 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      message: err.message,
-    });
-  }
-
   if (err instanceof ZodError) {
     return res.status(400).json({
       message: "Validation error",
@@ -24,7 +18,13 @@ export const errorHandler = (
     });
   }
 
-  console.error("UNHANDLED ERROR:", err);
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      message: err.message,
+    });
+  }
+
+  //Logs de errores no controlados
   console.error(`[${req.method}] ${req.url}`, err);
 
   return res.status(500).json({

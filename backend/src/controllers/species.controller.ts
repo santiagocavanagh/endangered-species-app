@@ -20,8 +20,8 @@ export class SpeciesController {
       const result = await service.getAll(req.query);
 
       return res.json({
-        ...result,
         data: result.data.map(SpeciesMapper),
+        meta: result.meta,
       });
     } catch (error) {
       next(error);
