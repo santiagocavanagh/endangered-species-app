@@ -2,17 +2,19 @@ import jwt from "jsonwebtoken";
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
 import { AuthRequest, TokenPayload } from "../types/auth.types";
+import { UserRole } from "../entities/user.entity";
+import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
 
 export const authenticateToken = (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Token requerido" });
+    if (!authHeader?.startsWith("Bearer ")) {
+      throw new UnauthorizedError("Token requerido");
     }
 
     const token = authHeader.split(" ")[1];
@@ -20,34 +22,32 @@ export const authenticateToken = (
     const decoded = jwt.verify(token, ENV.JWT_SECRET) as TokenPayload;
 
     if (!decoded.id || !decoded.email || !decoded.role) {
-      return res.status(403).json({ error: "Token inválido" });
+      throw new ForbiddenError("Token inválido");
     }
 
     req.user = {
       id: decoded.id,
       email: decoded.email,
-      role: decoded.role,
+      role: decoded.role as UserRole,
     };
 
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Token inválido o expirado" });
+    next(new ForbiddenError("Token inválido o expirado"));
   }
 };
 
 export const isAdmin = (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   if (!req.user) {
-    return res.status(401).json({ error: "No autenticado" });
+    return next(new UnauthorizedError("No autenticado"));
   }
 
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      error: "Se requiere rol de administrador",
-    });
+  if (req.user.role !== UserRole.ADMIN) {
+    return next(new ForbiddenError("Se requiere rol de administrador"));
   }
 
   next();

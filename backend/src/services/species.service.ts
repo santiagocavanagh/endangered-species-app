@@ -8,7 +8,7 @@ import {
   DataSource as DataSourceEntity,
   DataSourceType,
 } from "../entities/data-source.entity";
-import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../dto/species.dto";
+import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../dto/species.input.dto";
 import { SpeciesQuery } from "../schemas/species.schema";
 import { NotFoundError } from "../errors/http.error";
 

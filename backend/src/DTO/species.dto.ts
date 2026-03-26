@@ -1,47 +1,43 @@
-import { z } from "zod";
-import {
-  createSpeciesSchema,
-  updateSpeciesSchema,
-} from "../schemas/species.schema";
+export interface TaxonomyDTO {
+  kingdom: string;
+  phylum?: string | null;
+  className?: string | null;
+  orderName?: string | null;
+  family?: string | null;
+  genus?: string | null;
+}
 
-export type CreateSpeciesDTO = z.infer<typeof createSpeciesSchema>;
+export interface CensusDTO {
+  population: number;
+  date: string;
+  source?: {
+    id: number;
+    name: string;
+  };
+}
 
-export type UpdateSpeciesDTO = z.infer<typeof updateSpeciesSchema>;
+export interface MediaDTO {
+  mediaUrl: string;
+  mediaType: string;
+  credit?: string | null;
+  license?: string | null;
+}
 
-export interface ResponseDTO {
+export interface SpeciesDTO {
   id: number;
   scientificName: string;
-  commonName?: string | null;
+  commonName: string | null;
   iucnStatus: string;
   taxonomyId: number;
 
-  taxonomy?: {
-    kingdom: string;
-    phylum?: string | null;
-    class_name?: string | null;
-    order_name?: string | null;
-    family?: string | null;
-    genus?: string | null;
-  };
+  taxonomy?: TaxonomyDTO;
 
-  description?: string | null;
-  habitat?: string | null;
+  description: string | null;
+  habitat: string | null;
+
   regions: string[];
 
-  latestPopulation?: number;
-  latestCensus?: {
-    population: number;
-    date: string;
-    source?: {
-      id: number;
-      name: string;
-    };
-  };
+  latestCensus?: CensusDTO;
 
-  media?: Array<{
-    mediaUrl: string;
-    mediaType: string;
-    credit?: string | null;
-    license?: string | null;
-  }>;
+  media: MediaDTO[];
 }

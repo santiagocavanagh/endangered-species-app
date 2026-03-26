@@ -19,8 +19,7 @@ export class AuthService {
     role?: UserRole;
   }) {
     const { email, password, name, role } = data;
-    const finalRole: UserRole =
-      role && Object.values(UserRole).includes(role) ? role : UserRole.USER;
+    const finalRole: UserRole = role ?? UserRole.USER;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 

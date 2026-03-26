@@ -1,18 +1,18 @@
 import { Response, NextFunction } from "express";
 import { FavoriteService } from "../services/favorite.service";
-import { AuthRequest } from "../types/auth.types";
 import { FavoriteParams } from "../schemas/favorite.schema";
+import { AuthRequest } from "../types/auth.types";
 
 const service = new FavoriteService();
 
+type ReqWithParams = AuthRequest & {
+  params: FavoriteParams;
+};
+
 export const FavoriteController = {
-  getFavorites: async (
-    req: AuthRequest & { params: FavoriteParams },
-    res: Response,
-    next: NextFunction,
-  ) => {
+  getFavorites: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const data = await service.getFavorites(req.user!.id);
+      const data = await service.getFavorites(req.user.id);
       return res.json(data);
     } catch (error) {
       next(error);
@@ -20,13 +20,13 @@ export const FavoriteController = {
   },
 
   addFavorite: async (
-    req: AuthRequest & { params: FavoriteParams },
+    req: ReqWithParams,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const speciesId = Number(req.params.id);
-      const result = await service.addFavorite(req.user!.id, speciesId);
+      const result = await service.addFavorite(req.user.id, req.params.id);
+
       return res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -34,13 +34,13 @@ export const FavoriteController = {
   },
 
   removeFavorite: async (
-    req: AuthRequest & { params: FavoriteParams },
+    req: ReqWithParams,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const speciesId = Number(req.params.id);
-      const result = await service.removeFavorite(req.user!.id, speciesId);
+      const result = await service.removeFavorite(req.user.id, req.params.id);
+
       return res.json(result);
     } catch (error) {
       next(error);
