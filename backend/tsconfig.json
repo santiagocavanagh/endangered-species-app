@@ -2,40 +2,37 @@
   "compilerOptions": {
     "target": "ES2021",
     "module": "CommonJS",
-    "lib": ["ES2021", "DOM"],
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
+    "lib": ["ES2021"],
     "moduleResolution": "node",
-    "rootDir": "./",
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    // Output
+    "rootDir": "./src",
     "outDir": "./dist",
+    "sourceMap": true,
+
+    // TypeORM
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false,
+
+    //Interoperabilidad
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "moduleDetection": "force",
-    "verbatimModuleSyntax": false,
+    "allowSyntheticDefaultImports": true,
+
+    "types": ["node"],
+    "strict": true,
+    "strictPropertyInitialization": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "allowUnusedLabels": false,
-    "noUncheckedSideEffectImports": true,
     "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false,
-    "strict": true,
-    "sourceMap": true,
-    "declaration": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    //OPTIONAL
-    "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-    //"erasableSyntaxOnly": true, //For Node only, problems with TypeORM
-    "noImplicitOverride": true //For Non Override Functions
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
 
-},
-  "include": ["src/**/*", "scripts/seeds/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
