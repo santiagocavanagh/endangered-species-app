@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { ENV } from "../config/env.config";
+import { ENV } from "./env.config";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
   password: ENV.DB.PASSWORD,
   database: ENV.DB.NAME,
   entities:
-    process.env.NODE_ENV === "production"
+    ENV.NODE_ENV === "production"
       ? ["dist/**/*.entity.js"]
       : ["src/**/*.entity.ts"],
   synchronize: false,

@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { AppDataSource } from "../config/data.source";
 import { User, UserRole } from "../entities/user.entity";
 import { ENV } from "../config/env.config";
@@ -8,25 +8,28 @@ import {
   UnauthorizedError,
   NotFoundError,
 } from "../errors/http.error";
+import {
+  RegisterBody,
+  LoginBody,
+  UpdateProfileBody,
+} from "../schemas/auth.schema";
+import { isMysqlError } from "@/utils/db-error.util";
+import { TokenPayload } from "../types/auth.types";
 
 export class AuthService {
   private userRepo = AppDataSource.getRepository(User);
 
-  async register(data: {
-    email: string;
-    password: string;
-    name?: string;
-    role?: UserRole;
-  }) {
+  async register(data: RegisterBody) {
     const { email, password, name, role } = data;
+    const normalizedEmail = email.trim().toLowerCase();
     const finalRole: UserRole = role ?? UserRole.USER;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, ENV.BCRYPT_ROUNDS);
 
     try {
       const user = this.userRepo.create({
-        email,
-        name,
+        email: normalizedEmail,
+        name: name ?? null,
         password: hashedPassword,
         role: finalRole,
       });
@@ -34,15 +37,16 @@ export class AuthService {
       await this.userRepo.save(user);
 
       return { message: "Usuario creado con éxito" };
-    } catch (error: any) {
-      if (error.code === "ER_DUP_ENTRY") {
+    } catch (error: unknown) {
+      if (isMysqlError(error) && error.code === "ER_DUP_ENTRY") {
         throw new BadRequestError("Este correo electrónico ya está registrado");
       }
+
       throw error;
     }
   }
 
-  async login(data: { email: string; password: string }) {
+  async login(data: LoginBody) {
     const { email, password } = data;
 
     const user = await this.userRepo.findOneBy({ email });
@@ -57,11 +61,17 @@ export class AuthService {
       throw new UnauthorizedError("Credenciales inválidas");
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      ENV.JWT_SECRET as string,
-      { expiresIn: ENV.JWT_EXPIRATION as any },
-    );
+    const payload: TokenPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const options: SignOptions = {
+      expiresIn: ENV.JWT_EXPIRATION as SignOptions["expiresIn"],
+    };
+
+    const token = jwt.sign(payload, ENV.JWT_SECRET, options);
 
     return {
       token,
@@ -71,18 +81,19 @@ export class AuthService {
     };
   }
 
-  async updateProfile(
-    userId: number,
-    data: { name?: string; password?: string },
-  ) {
+  async updateProfile(userId: number, data: UpdateProfileBody) {
     const user = await this.userRepo.findOneBy({ id: userId });
 
     if (!user) {
       throw new NotFoundError("Usuario no encontrado");
     }
 
-    if (data.name) {
+    if (data.name !== undefined) {
       user.name = data.name;
+    }
+
+    if (data.password) {
+      user.password = await bcrypt.hash(data.password, ENV.BCRYPT_ROUNDS);
     }
 
     await this.userRepo.save(user);

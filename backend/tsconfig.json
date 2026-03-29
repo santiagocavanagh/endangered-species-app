@@ -32,7 +32,7 @@
     //OPTIONAL
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
-    "erasableSyntaxOnly": true, //For Node
+    //"erasableSyntaxOnly": true, //For Node only, problems with TypeORM
     "noImplicitOverride": true //For Non Override Functions
 
 },
