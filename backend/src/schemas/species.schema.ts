@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CONSERVATION_STATUSES } from "../constants/species.constants";
+import { CONSERVATION_STATUSES } from "../constants/species.constant";
 
 export const speciesIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),

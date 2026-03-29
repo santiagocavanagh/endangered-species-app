@@ -10,7 +10,7 @@ import { DataSource } from "./data-source.entity";
 import {
   CONSERVATION_STATUSES,
   ConservationStatus,
-} from "../constants/species.constants";
+} from "../constants/species.constant";
 
 @Entity("status_history")
 export class StatusHistory {
