@@ -10,6 +10,7 @@ import {
 const service = new AuthService();
 
 export class AuthController {
+  //Register
   static async register(
     req: Request<{}, {}, RegisterBody>,
     res: Response,
@@ -22,7 +23,7 @@ export class AuthController {
       next(error);
     }
   }
-
+  //Login
   static async login(
     req: Request<{}, {}, LoginBody>,
     res: Response,
@@ -35,7 +36,7 @@ export class AuthController {
       next(error);
     }
   }
-
+  //Update
   static async updateProfile(
     req: AuthRequest & { body: UpdateProfileBody },
     res: Response,

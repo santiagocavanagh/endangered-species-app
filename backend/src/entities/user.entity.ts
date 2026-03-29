@@ -29,6 +29,13 @@ export class User {
   password!: string;
 
   @Column({
+    name: "password_changed_at",
+    type: "timestamp",
+    nullable: true,
+  })
+  passwordChangedAt!: Date | null;
+
+  @Column({
     type: "enum",
     enum: UserRole,
     default: UserRole.USER,

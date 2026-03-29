@@ -1,6 +1,6 @@
-import { AuthController } from "../controllers/auth.controller";
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware";
+import { AuthController } from "../controllers/auth.controller";
 import {
   limiter,
   loginLimiter,

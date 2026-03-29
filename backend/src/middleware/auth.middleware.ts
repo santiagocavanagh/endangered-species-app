@@ -2,20 +2,22 @@ import jwt from "jsonwebtoken";
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
 import { AuthRequest, TokenPayload } from "../types/auth.types";
-import { UserRole } from "../entities/user.entity";
+import { User, UserRole } from "../entities/user.entity";
 import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
+import { AppDataSource } from "../config/data.source";
 
 function isTokenPayload(payload: unknown): payload is TokenPayload {
   return (
     typeof payload === "object" &&
     payload !== null &&
-    typeof (payload as any).id === "number" &&
-    typeof (payload as any).email === "string" &&
-    typeof (payload as any).role === "string"
+    "id" in payload &&
+    "email" in payload &&
+    "role" in payload &&
+    "passwordChangedAt" in payload
   );
 }
 
-export const authenticateToken = (
+export const authenticateToken = async (
   req: AuthRequest,
   _res: Response,
   next: NextFunction,
@@ -43,10 +45,24 @@ export const authenticateToken = (
       throw new ForbiddenError("Rol inválido");
     }
 
-    req.user = {
+    const user = await AppDataSource.getRepository(User).findOneBy({
       id: decoded.id,
-      email: decoded.email,
-      role: decoded.role,
+    });
+
+    if (!user) {
+      throw new ForbiddenError("Usuario no existe");
+    }
+
+    const currentPasswordChangedAt = user.passwordChangedAt?.getTime() ?? 0;
+
+    if (decoded.passwordChangedAt < currentPasswordChangedAt) {
+      throw new ForbiddenError("Token inválido por cambio de contraseña");
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
     };
 
     next();

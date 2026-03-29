@@ -22,4 +22,5 @@ export interface TokenPayload extends JwtPayload {
   id: number;
   email: string;
   role: UserRole;
+  passwordChangedAt: number;
 }

@@ -16,7 +16,11 @@ const loginLimiter = rateLimit({
   ...options,
   windowMs: 15 * 60 * 1000,
   limit: 5,
-  message: { error: "Intenta luego en 15 minutos" },
+  keyGenerator: (req) => {
+    const email = req.body?.email?.toLowerCase() ?? "unknown";
+    return `${req.ip}-${email}`;
+  },
+  message: { error: "Demasiados intentos, intenta luego" },
 });
 
 const registerLimiter = rateLimit({
