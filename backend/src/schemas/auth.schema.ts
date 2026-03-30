@@ -1,11 +1,9 @@
 import { z } from "zod";
-import { UserRole } from "../entities/user.entity";
 
 export const registerSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
   name: z.string().optional(),
-  role: z.enum([UserRole.ADMIN, UserRole.USER]).optional(),
 });
 
 export const loginSchema = z.object({

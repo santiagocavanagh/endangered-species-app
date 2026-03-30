@@ -21,13 +21,9 @@ export class AuthService {
 
   //Register
   async register(data: RegisterBody) {
-    const { email, password, name, role } = data;
+    const { email, password, name } = data;
 
     const normalizedEmail = email.trim().toLowerCase();
-
-    if (role && !Object.values(UserRole).includes(role)) {
-      throw new BadRequestError("Rol inválido");
-    }
 
     const existingUser = await this.userRepo.findOneBy({
       email: normalizedEmail,
@@ -46,20 +42,16 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, rounds);
 
-    const finalRole: UserRole = UserRole.USER;
+    const user = this.userRepo.create({
+      email: normalizedEmail,
+      name: name ?? null,
+      password: hashedPassword,
+      passwordChangedAt: new Date(),
+      role: UserRole.USER,
+    });
 
     try {
-      const user = this.userRepo.create({
-        email: normalizedEmail,
-        name: name ?? null,
-        password: hashedPassword,
-        passwordChangedAt: new Date(),
-        role: finalRole,
-      });
-
       await this.userRepo.save(user);
-
-      return { message: "Usuario creado con éxito" };
     } catch (error: unknown) {
       if (isMysqlError(error) && error.code === "ER_DUP_ENTRY") {
         throw new BadRequestError("Este correo electrónico ya está registrado");
@@ -67,6 +59,8 @@ export class AuthService {
 
       throw error;
     }
+
+    return { message: "Usuario creado con éxito" };
   }
 
   //Login
@@ -148,8 +142,9 @@ export class AuthService {
       }
 
       user.password = await bcrypt.hash(data.password, rounds);
-
       user.passwordChangedAt = new Date();
+
+      await this.userRepo.save(user);
 
       updated = true;
     }

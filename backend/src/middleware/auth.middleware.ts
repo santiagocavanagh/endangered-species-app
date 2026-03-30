@@ -45,23 +45,21 @@ export const authenticateToken = async (
       throw new ForbiddenError("Token inválido");
     }
 
-    if (!Object.values(UserRole).includes(decoded.role)) {
+    if (!Object.values(UserRole).includes(decoded.role as UserRole)) {
       throw new ForbiddenError("Rol inválido");
     }
 
-    //Validacion DB
     const user = await userRepo.findOneBy({ id: decoded.id });
 
     if (!user) {
       throw new UnauthorizedError("Usuario no existe");
     }
 
-    //Invalidar token si cambia conrtraseña
     const userPasswordChangedAt = user.passwordChangedAt
       ? Math.floor(user.passwordChangedAt.getTime() / 1000)
       : 0;
 
-    if (decoded.passwordChangedAt < userPasswordChangedAt - 1) {
+    if (decoded.passwordChangedAt < userPasswordChangedAt) {
       throw new UnauthorizedError("Token expirado por cambio de contraseña");
     }
 
@@ -72,8 +70,12 @@ export const authenticateToken = async (
     };
 
     next();
-  } catch {
-    next(new ForbiddenError("Token inválido o expirado"));
+  } catch (error) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return next(error);
+    }
+
+    return next(new ForbiddenError("Token inválido o expirado"));
   }
 };
 
