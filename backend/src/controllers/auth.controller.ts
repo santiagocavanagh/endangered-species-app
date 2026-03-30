@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { requireUser } from "../utils/require-user.util";
 import { AuthService } from "../services/auth.service";
-import { AuthRequest } from "../types/auth.types";
 import {
   RegisterBody,
   LoginBody,
@@ -23,6 +23,7 @@ export class AuthController {
       next(error);
     }
   }
+
   //Login
   static async login(
     req: Request<{}, {}, LoginBody>,
@@ -36,14 +37,17 @@ export class AuthController {
       next(error);
     }
   }
-  //Update
+
+  //Update Profile
   static async updateProfile(
-    req: AuthRequest & { body: UpdateProfileBody },
+    req: Request<{}, {}, UpdateProfileBody>,
     res: Response,
     next: NextFunction,
   ) {
     try {
-      const result = await service.updateProfile(req.user!.id, req.body);
+      requireUser(req);
+
+      const result = await service.updateProfile(req.user.id, req.body);
       return res.json(result);
     } catch (error) {
       next(error);

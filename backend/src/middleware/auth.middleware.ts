@@ -2,10 +2,14 @@ import jwt from "jsonwebtoken";
 import { Response, NextFunction } from "express";
 import { ENV } from "../config/env.config";
 import { AuthRequest, TokenPayload } from "../types/auth.types";
-import { User, UserRole } from "../entities/user.entity";
+import { UserRole } from "../entities/user.entity";
 import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
 import { AppDataSource } from "../config/data.source";
+import { User } from "../entities/user.entity";
 
+const userRepo = AppDataSource.getRepository(User);
+
+// Type guard
 function isTokenPayload(payload: unknown): payload is TokenPayload {
   return (
     typeof payload === "object" &&
@@ -45,18 +49,20 @@ export const authenticateToken = async (
       throw new ForbiddenError("Rol inválido");
     }
 
-    const user = await AppDataSource.getRepository(User).findOneBy({
-      id: decoded.id,
-    });
+    //Validacion DB
+    const user = await userRepo.findOneBy({ id: decoded.id });
 
     if (!user) {
-      throw new ForbiddenError("Usuario no existe");
+      throw new UnauthorizedError("Usuario no existe");
     }
 
-    const currentPasswordChangedAt = user.passwordChangedAt?.getTime() ?? 0;
+    //Invalidar token si cambia conrtraseña
+    const userPasswordChangedAt = user.passwordChangedAt
+      ? Math.floor(user.passwordChangedAt.getTime() / 1000)
+      : 0;
 
-    if (decoded.passwordChangedAt < currentPasswordChangedAt) {
-      throw new ForbiddenError("Token inválido por cambio de contraseña");
+    if (decoded.passwordChangedAt < userPasswordChangedAt - 1) {
+      throw new UnauthorizedError("Token expirado por cambio de contraseña");
     }
 
     req.user = {

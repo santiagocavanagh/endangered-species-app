@@ -40,7 +40,8 @@ export class AuthService {
     const rounds = Number(ENV.BCRYPT_ROUNDS);
 
     if (!Number.isInteger(rounds) || rounds <= 0) {
-      throw new Error("BCRYPT_ROUNDS inválido");
+      console.error("BCRYPT_ROUNDS inválido:", ENV.BCRYPT_ROUNDS);
+      throw new Error("Configuración inválida del servidor");
     }
 
     const hashedPassword = await bcrypt.hash(password, rounds);
@@ -52,6 +53,7 @@ export class AuthService {
         email: normalizedEmail,
         name: name ?? null,
         password: hashedPassword,
+        passwordChangedAt: new Date(),
         role: finalRole,
       });
 
@@ -93,7 +95,9 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      passwordChangedAt: user.passwordChangedAt?.getTime() ?? 0,
+      passwordChangedAt: user.passwordChangedAt
+        ? Math.floor(user.passwordChangedAt.getTime() / 1000)
+        : 0,
     };
 
     const options: SignOptions = {
