@@ -15,4 +15,5 @@ export const AppDataSource = new DataSource({
       : ["src/**/*.entity.ts"],
   synchronize: false,
   logging: ENV.NODE_ENV === "development",
+  ssl: ENV.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
 });

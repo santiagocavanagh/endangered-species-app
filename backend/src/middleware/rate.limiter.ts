@@ -16,6 +16,7 @@ const loginLimiter = rateLimit({
   ...options,
   windowMs: 15 * 60 * 1000,
   limit: 5,
+  skipSuccessfulRequests: true,
   keyGenerator: (req) => {
     const email = req.body?.email?.toLowerCase() ?? "unknown";
     return `${req.ip}-${email}`;

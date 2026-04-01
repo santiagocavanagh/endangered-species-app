@@ -136,7 +136,6 @@ export class AuthService {
       }
 
       const valid = await bcrypt.compare(data.currentPassword, user.password);
-
       if (!valid) {
         throw new UnauthorizedError("Contraseña actual incorrecta");
       }
@@ -144,13 +143,17 @@ export class AuthService {
       user.password = await bcrypt.hash(data.password, rounds);
       user.passwordChangedAt = new Date();
 
-      await this.userRepo.save(user);
-
       updated = true;
     }
 
+    if (updated) {
+      await this.userRepo.save(user);
+    }
+
     return {
-      message: updated ? "Perfil actualizado correctamente" : "Sin cambios",
+      message: updated
+        ? "Perfil actualizado correctamente"
+        : "Perfil sin cambios",
       user: {
         name: user.name,
         email: user.email,

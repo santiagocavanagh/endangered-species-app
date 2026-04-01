@@ -17,7 +17,6 @@ process.on("uncaughtException", (err) => {
 });
 
 const app = express();
-app.disable("x-powered-by");
 
 const allowedOrigins: string[] = ENV.FRONTEND_URL ? [ENV.FRONTEND_URL] : [];
 
@@ -48,7 +47,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) {
-        return callback(null, true); // permitir sin origin
+        if (ENV.NODE_ENV === "development") return callback(null, true);
+        return callback(new Error("Origin requerido"), false);
       }
 
       if (!isAllowedOrigin(origin)) {
@@ -71,19 +71,21 @@ app.use("/api", routes);
 app.use(errorHandler);
 
 // test endpoint
-app.get("/", (_req, res) => {
-  res.send("backend Endangered Species funcionando!");
-});
+if (ENV.NODE_ENV === "development") {
+  app.get("/health", (_req, res) => {
+    res.json({ status: "Status: ✅ ok" });
+  });
+}
 
 async function bootstrap() {
   try {
     await AppDataSource.initialize();
-    console.log("✅ Conexión exitosa a MySQL con TypeORM");
+    console.log("✅ Conexión exitosa a la base de datos");
 
     const PORT = ENV.PORT;
 
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`🚀 Servidor: http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("❌ Error al iniciar la aplicación:", error);

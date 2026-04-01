@@ -6,16 +6,33 @@ import {
   loginLimiter,
   registerLimiter,
 } from "../middleware/rate.limiter";
+import {
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+} from "@/schemas/auth.schema";
+import { validateBody } from "@/middleware/validate.middleware";
 
 const router = Router();
-// RUTAS
-router.post("/register", registerLimiter, AuthController.register);
-router.post("/login", loginLimiter, AuthController.login);
+
+router.post(
+  "/register",
+  registerLimiter,
+  validateBody(registerSchema),
+  AuthController.register,
+);
+router.post(
+  "/login",
+  loginLimiter,
+  validateBody(loginSchema),
+  AuthController.login,
+);
 
 router.put(
   "/update-profile",
   authenticateToken,
   limiter,
+  validateBody(updateProfileSchema),
   AuthController.updateProfile,
 );
 

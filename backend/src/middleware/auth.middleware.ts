@@ -7,8 +7,6 @@ import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
 import { AppDataSource } from "../config/data.source";
 import { User } from "../entities/user.entity";
 
-const userRepo = AppDataSource.getRepository(User);
-
 // Type guard
 function isTokenPayload(payload: unknown): payload is TokenPayload {
   return (
@@ -26,6 +24,8 @@ export const authenticateToken = async (
   _res: Response,
   next: NextFunction,
 ) => {
+  const userRepo = AppDataSource.getRepository(User);
+
   try {
     const authHeader = req.headers.authorization;
 

@@ -10,12 +10,8 @@ export interface AuthRequest extends Request {
   };
 }
 
-export interface AuthenticatedRequest extends Request {
-  user: {
-    id: number;
-    email: string;
-    role: UserRole;
-  };
+export interface AuthenticatedRequest extends AuthRequest {
+  user: NonNullable<AuthRequest["user"]>;
 }
 
 export interface TokenPayload extends JwtPayload {
