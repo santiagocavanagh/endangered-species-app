@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { ENV } from "../config/env.config";
-import { isMysqlError } from "@/utils/db-error.util";
+import { isMysqlError } from "../utils/db-error.util";
 import { TokenPayload } from "../types/auth.types";
 import { AppDataSource } from "../config/data.source";
 import { User, UserRole } from "../entities/user.entity";
