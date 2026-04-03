@@ -6,6 +6,7 @@ import {
   LoginBody,
   UpdateProfileBody,
 } from "../schemas/auth.schema";
+import { AuthRequest } from "../types/auth.types";
 
 const service = new AuthService();
 
@@ -40,13 +41,12 @@ export class AuthController {
 
   //Update Profile
   static async updateProfile(
-    req: Request<{}, {}, UpdateProfileBody>,
+    req: AuthRequest & { body: UpdateProfileBody },
     res: Response,
     next: NextFunction,
   ) {
     try {
       requireUser(req);
-
       const result = await service.updateProfile(req.user.id, req.body);
       return res.json(result);
     } catch (error) {

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const registerSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
-  name: z.string().optional(),
+  name: z.string().min(2).optional(),
 });
 
 export const loginSchema = z.object({
@@ -13,7 +13,7 @@ export const loginSchema = z.object({
 
 export const updateProfileSchema = z
   .object({
-    name: z.string().optional(),
+    name: z.string().min(2).optional(),
     password: z.string().min(8).optional(),
     currentPassword: z.string().min(1).optional(),
   })
