@@ -1,5 +1,5 @@
 import { Species } from "../entities/species.entity";
-import { SpeciesDTO } from "../dto/species.dto";
+import { SpeciesDTO } from "../DTO/species.dto";
 
 export function SpeciesMapper(species: Species): SpeciesDTO {
   const latest = species.populationCensus?.length

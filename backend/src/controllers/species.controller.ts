@@ -52,7 +52,7 @@ export class SpeciesController {
     next: NextFunction,
   ) {
     try {
-      const species = await service.getOne(req.params.id);
+      const species = await service.getOne(Number(req.params.id));
       return res.json(SpeciesMapper(species));
     } catch (error) {
       next(error);
@@ -78,7 +78,7 @@ export class SpeciesController {
     next: NextFunction,
   ) {
     try {
-      const updated = await service.update(req.params.id, req.body);
+      const updated = await service.update(Number(req.params.id), req.body);
       return res.json(SpeciesMapper(updated));
     } catch (error) {
       next(error);
@@ -91,7 +91,7 @@ export class SpeciesController {
     next: NextFunction,
   ) {
     try {
-      await service.delete(req.params.id);
+      await service.delete(Number(req.params.id));
       return res.status(204).send();
     } catch (error) {
       next(error);

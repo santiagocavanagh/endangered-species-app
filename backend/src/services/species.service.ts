@@ -8,7 +8,7 @@ import {
   DataSource as DataSourceEntity,
   DataSourceType,
 } from "../entities/data-source.entity";
-import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../dto/species.input.dto";
+import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../DTO/species.input.dto";
 import { SpeciesQuery } from "../schemas/species.schema";
 import { NotFoundError } from "../errors/http.error";
 
@@ -183,7 +183,10 @@ export class SpeciesService {
     }
 
     species.scientificName = data.scientificName ?? species.scientificName;
-    species.commonName = data.commonName ?? species.commonName;
+    species.commonName =
+      data.commonName !== undefined
+        ? (data.commonName ?? null)
+        : species.commonName;
     species.iucnStatus = data.iucnStatus ?? species.iucnStatus;
     species.description = data.description ?? species.description;
     species.habitat = data.habitat ?? species.habitat;

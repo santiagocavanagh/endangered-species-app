@@ -17,15 +17,15 @@ import { SpeciesController } from "../controllers/species.controller";
 const router = Router();
 
 // User
+router.get("/species/critical", limiter, SpeciesController.getCritical);
+router.get("/species/rescued", limiter, SpeciesController.getRescued);
+
 router.get(
   "/species",
   limiter,
   validateQuery(speciesQuerySchema),
   SpeciesController.getAll,
 );
-
-router.get("/species/critical", limiter, SpeciesController.getCritical);
-router.get("/species/rescued", limiter, SpeciesController.getRescued);
 
 router.get(
   "/species/:id",
