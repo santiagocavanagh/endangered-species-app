@@ -17,25 +17,25 @@ import {
 const router = Router();
 
 // User
-router.get("/species/critical", limiter, SpeciesController.getCritical);
-router.get("/species/rescued", limiter, SpeciesController.getRescued);
+router.get("/critical", limiter, SpeciesController.getCritical);
+router.get("/rescued", limiter, SpeciesController.getRescued);
 
 router.get(
-  "/species",
+  "/",
   limiter,
   validateQuery(speciesQuerySchema),
   SpeciesController.getAll,
 );
 
 router.get(
-  "/species/:id",
+  "/:id",
   limiter,
   validateParams(speciesIdParamSchema),
   SpeciesController.getOne,
 );
 // Admin
 router.post(
-  "/species",
+  "/",
   limiter,
   authenticateToken,
   isAdmin,
@@ -44,7 +44,7 @@ router.post(
 );
 
 router.patch(
-  "/species/:id",
+  "/:id",
   limiter,
   authenticateToken,
   isAdmin,
@@ -54,7 +54,7 @@ router.patch(
 );
 
 router.delete(
-  "/species/:id",
+  "/:id",
   limiter,
   authenticateToken,
   isAdmin,
