@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { SpeciesService } from "../services/species.service";
 import { SpeciesMapper } from "../mappers/species.mapper";
 import {
-  SpeciesIdParams,
   SpeciesQuery,
   CreateSpeciesBody,
   UpdateSpeciesBody,
@@ -47,7 +46,7 @@ export class SpeciesController {
   }
 
   static async getOne(
-    req: Request<SpeciesIdParams>,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction,
   ) {
@@ -73,12 +72,13 @@ export class SpeciesController {
   }
 
   static async update(
-    req: Request<SpeciesIdParams, {}, UpdateSpeciesBody>,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction,
   ) {
     try {
-      const updated = await service.update(Number(req.params.id), req.body);
+      const body = req.body as UpdateSpeciesBody;
+      const updated = await service.update(Number(req.params.id), body);
       return res.json(SpeciesMapper(updated));
     } catch (error) {
       next(error);
@@ -86,7 +86,7 @@ export class SpeciesController {
   }
 
   static async delete(
-    req: Request<SpeciesIdParams>,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction,
   ) {

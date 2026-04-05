@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
 import { limiter } from "../middleware/rate.limiter";
+import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
+import { SpeciesController } from "../controllers/species.controller";
 import {
   createSpeciesSchema,
   speciesIdParamSchema,
@@ -12,7 +13,6 @@ import {
   validateParams,
   validateQuery,
 } from "../middleware/validate.middleware";
-import { SpeciesController } from "../controllers/species.controller";
 
 const router = Router();
 

@@ -14,7 +14,7 @@ import { Taxonomy } from "./taxonomy.entity";
 import { PopulationCensus } from "./population-census.entity";
 import { StatusHistory } from "./status-history.entity";
 import { Region } from "./region.entity";
-import { Favorite } from "./favorites.entity";
+import { Favorite } from "./favorite.entity";
 import { SpeciesMedia } from "./species-media.entity";
 
 @Entity("species")

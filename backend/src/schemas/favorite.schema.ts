@@ -4,4 +4,4 @@ export const favoriteParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-export type FavoriteParams = z.infer<typeof favoriteParamsSchema>;
+//export type FavoriteParams = z.infer<typeof favoriteParamsSchema>;

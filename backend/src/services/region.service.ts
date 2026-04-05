@@ -1,6 +1,6 @@
 import { AppDataSource } from "../config/data.source";
 import { Region } from "../entities/region.entity";
-import { NotFoundError, BadRequestError } from "../errors/http.error";
+import { NotFoundError } from "../errors/http.error";
 
 export class RegionService {
   private regionRepo = AppDataSource.getRepository(Region);
@@ -12,10 +12,6 @@ export class RegionService {
   }
 
   async getOne(id: number) {
-    if (!id || isNaN(id)) {
-      throw new BadRequestError("Invalid ID");
-    }
-
     const region = await this.regionRepo.findOneBy({ id });
 
     if (!region) {

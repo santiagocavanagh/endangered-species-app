@@ -1,7 +1,8 @@
 import { AppDataSource } from "../config/data.source";
-import { Favorite } from "../entities/favorites.entity";
+import { Favorite } from "../entities/favorite.entity";
 import { Species } from "../entities/species.entity";
 import { User } from "../entities/user.entity";
+import { SpeciesMapper } from "../mappers/species.mapper";
 import { NotFoundError, BadRequestError } from "../errors/http.error";
 
 export class FavoriteService {
@@ -11,10 +12,17 @@ export class FavoriteService {
   async getFavorites(userId: number) {
     const favorites = await this.favoriteRepo.find({
       where: { user: { id: userId } },
-      relations: ["species"],
+      relations: [
+        "species",
+        "species.taxonomy",
+        "species.regions",
+        "species.media",
+        "species.populationCensus",
+        "species.populationCensus.source",
+      ],
     });
 
-    return favorites.map((fav) => fav.species);
+    return favorites.map((fav) => SpeciesMapper(fav.species));
   }
 
   async addFavorite(userId: number, speciesId: number) {

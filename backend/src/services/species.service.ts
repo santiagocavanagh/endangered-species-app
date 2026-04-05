@@ -88,17 +88,7 @@ export class SpeciesService {
       throw new NotFoundError("Especie no encontrada");
     }
 
-    // ultimo census
-    const latest = species.populationCensus?.length
-      ? species.populationCensus.sort(
-          (a, b) => b.censusDate.getTime() - a.censusDate.getTime(),
-        )[0]
-      : null;
-
-    return {
-      ...species,
-      populationCensus: latest ? [latest] : [],
-    };
+    return species;
   }
 
   //Create
@@ -188,8 +178,12 @@ export class SpeciesService {
         ? (data.commonName ?? null)
         : species.commonName;
     species.iucnStatus = data.iucnStatus ?? species.iucnStatus;
-    species.description = data.description ?? species.description;
-    species.habitat = data.habitat ?? species.habitat;
+    species.description =
+      data.description !== undefined
+        ? (data.description ?? null)
+        : species.description;
+    species.habitat =
+      data.habitat !== undefined ? (data.habitat ?? null) : species.habitat;
 
     const updatedSpecies = await AppDataSource.manager.transaction(
       async (manager) => {

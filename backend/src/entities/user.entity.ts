@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   Unique,
 } from "typeorm";
-import { Favorite } from "./favorites.entity";
+import { Favorite } from "./favorite.entity";
 
 export enum UserRole {
   ADMIN = "admin",
