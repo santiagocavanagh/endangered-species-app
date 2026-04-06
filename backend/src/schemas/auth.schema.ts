@@ -17,6 +17,7 @@ export const updateProfileSchema = z
     password: z.string().min(8).optional(),
     currentPassword: z.string().min(1).optional(),
   })
+  .partial()
   .refine((data) => !(data.password && !data.currentPassword), {
     message: "Debe proporcionar la contraseña actual",
     path: ["currentPassword"],

@@ -41,7 +41,7 @@ export const createSpeciesSchema = z
   })
   .strict()
   .refine((data) => !(data.population !== undefined && !data.censusDate), {
-    message: "censusDate es obligatorio si population está presente",
+    message: "Censo obligatorio si población está presente",
     path: ["censusDate"],
   });
 
@@ -49,7 +49,7 @@ export const updateSpeciesSchema = createSpeciesSchema
   .partial()
   .strict()
   .refine((data) => !(data.population !== undefined && !data.censusDate), {
-    message: "censusDate es obligatorio si population está presente",
+    message: "Censo obligatorio si población está presente",
     path: ["censusDate"],
   });
 

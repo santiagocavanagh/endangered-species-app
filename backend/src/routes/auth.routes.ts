@@ -10,8 +10,8 @@ import {
   registerSchema,
   loginSchema,
   updateProfileSchema,
-} from "@/schemas/auth.schema";
-import { validateBody } from "@/middleware/validate.middleware";
+} from "../schemas/auth.schema";
+import { validateBody } from "../middleware/validate.middleware";
 
 const router = Router();
 

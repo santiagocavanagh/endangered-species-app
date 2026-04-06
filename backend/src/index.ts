@@ -17,6 +17,7 @@ process.on("uncaughtException", (err) => {
 });
 
 const app = express();
+app.set("trust proxy", 1);
 
 const allowedOrigins: string[] = ENV.FRONTEND_URL ? [ENV.FRONTEND_URL] : [];
 
