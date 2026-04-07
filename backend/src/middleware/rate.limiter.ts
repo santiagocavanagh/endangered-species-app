@@ -1,4 +1,4 @@
-import { rateLimit, Options, ipKeyGenerator } from "express-rate-limit";
+import { rateLimit, Options } from "express-rate-limit";
 
 const options: Partial<Options> = {
   standardHeaders: "draft-8",
@@ -17,10 +17,8 @@ const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
   skipSuccessfulRequests: true,
-  keyGenerator: (req: any) => {
-    const email = req.body?.email?.toLowerCase() ?? "unknown";
-
-    return `${ipKeyGenerator(req, {} as any)}-${email}`;
+  keyGenerator: (req) => {
+    return req.body?.email?.toLowerCase() ?? "unknown";
   },
   message: { error: "Demasiados intentos, intenta luego" },
 });
