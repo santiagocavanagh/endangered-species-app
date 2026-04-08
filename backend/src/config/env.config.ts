@@ -56,6 +56,7 @@ export const ENV = {
   JWT_EXPIRATION: getEnv("JWT_EXPIRATION"),
 
   BCRYPT_ROUNDS: getEnvNumber("BCRYPT_ROUNDS"),
+  ADMIN_REGISTER_SECRET: process.env["ADMIN_REGISTER_SECRET"] ?? null,
 
   DB: {
     HOST: getEnv("DB_HOST"),

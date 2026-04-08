@@ -9,6 +9,7 @@ import {
   BadRequestError,
   UnauthorizedError,
   NotFoundError,
+  ForbiddenError,
 } from "../errors/http.error";
 import {
   RegisterBody,
@@ -24,6 +25,13 @@ export class AuthService {
     const { email, password, name } = data;
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (data.role === UserRole.ADMIN) {
+      const adminSecret = process.env["ADMIN_REGISTER_SECRET"];
+      if (!adminSecret || data.adminSecret !== adminSecret) {
+        throw new ForbiddenError("No autorizado para crear administradores");
+      }
+    }
 
     const existingUser = await this.userRepo.findOneBy({
       email: normalizedEmail,
@@ -47,7 +55,7 @@ export class AuthService {
       name: name ?? null,
       password: hashedPassword,
       passwordChangedAt: new Date(),
-      role: UserRole.USER,
+      role: data.role ?? UserRole.USER,
     });
 
     try {
