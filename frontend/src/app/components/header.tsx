@@ -62,7 +62,7 @@ export function Header({ activeCategory, onCategoryChange }: HeaderProps) {
                       {(user.name?.[0] || user.email[0]).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-start leading-none hidden sm:flex">
+                <div className="flex flex-col items-start leading-none sm:flex">
                   <span className="text-gray-900 font-semibold text-sm group-hover:text-emerald-600 transition-colors">
                     {user.name || user.email.split('@')[0]}
                   </span>
