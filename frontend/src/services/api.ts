@@ -16,32 +16,40 @@ export const api = {
     try {
       const response = await fetch(`${API_URL}/species`);
       if (!response.ok) throw new Error("Error en el servidor");
-      const list = await response.json();
+
+      const result = await response.json();
+      const list = result.data ?? result;
+
+      const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
+        animalia: "animal",
+        plantae: "planta",
+        fungi: "hongo",
+      };
 
       // Map backend ResponseDTO -> frontend Species shape
-      return list.map((s: any) => ({
-        id: Number(s.id),
-        name: s.name ?? s.commonName ?? "",
-        scientificName: s.scientificName ?? "",
-        status: s.iucnStatus ?? s.status ?? "",
-        habitat: s.habitat ?? "",
-        // join regions into single string for UI
-        region: Array.isArray(s.regions)
-          ? s.regions.join(", ")
-          : s.region || "",
-        population:
-          s.latestPopulation !== undefined && s.latestPopulation !== null
-            ? String(s.latestPopulation)
-            : "",
-        imageUrl:
-          Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
-        // frontend used `category` mapped from backend taxonomy (kingdom)
-        category: s.taxonomy?.kingdom
-          ? String(s.taxonomy.kingdom).toLowerCase()
-          : "animal",
-        // keep raw backend object for advanced UI if needed
-        _raw: s,
-      }));
+      return list.map((s: any) => {
+        const kingdom = String(s.taxonomy?.kingdom ?? "").toLowerCase();
+        return {
+          id: Number(s.id),
+          name: s.name ?? s.commonName ?? "",
+          scientificName: s.scientificName ?? "",
+          status: s.iucnStatus ?? s.status ?? "",
+          habitat: s.habitat ?? "",
+          // join regions into single string for UI
+          region: Array.isArray(s.regions)
+            ? s.regions.join(", ")
+            : s.region || "",
+          population:
+            s.latestPopulation !== undefined && s.latestPopulation !== null
+              ? String(s.latestPopulation)
+              : "",
+          imageUrl:
+            Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
+          category: kingdomMap[kingdom] ?? "animal",
+          // keep raw backend object for advanced UI if needed
+          _raw: s,
+        };
+      });
     } catch (error) {
       console.error(error);
       return [];
@@ -161,7 +169,7 @@ export const api = {
       if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
       const res = await fetch(`${API_URL}/species/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
@@ -178,9 +186,10 @@ export const api = {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
+      if (res.status === 204) return { success: true };
+
       return await res.json();
     } catch (error) {
-      console.error(error);
       return { error: "No se pudo eliminar" };
     }
   },

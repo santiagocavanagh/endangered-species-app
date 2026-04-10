@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "./services/api";
 import { Header } from "./app/components/header";
-import { FilterBar, Filters } from "./app/components/Filter-bar";
+import { FilterBar, Filters } from "./app/components/filter-bar";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 import { SpeciesModal } from "./app/components/species-modal";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/authContext";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
 
 export default function App() {
@@ -29,7 +29,7 @@ export default function App() {
 
       const favsData = await api.getFavorites();
       if (!favsData.error && Array.isArray(favsData)) {
-        const favIds = new Set<number>(favsData.map((f: any) => Number(f.speciesId || f.id)));
+        const favIds = new Set<number>(favsData.map((f: any) => Number(f.id)));
         setFavorites(favIds);
       }
     } catch (error) {

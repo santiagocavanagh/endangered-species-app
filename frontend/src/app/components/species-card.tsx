@@ -1,7 +1,7 @@
 import { Star, MapPin, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
 
 export interface Species {
   id: number;

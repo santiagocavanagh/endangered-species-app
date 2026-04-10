@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
 import { LoginModal } from "./login-modal";
 import { RegisterModal } from "./register-modal";
 import { ProfileModal } from "./profile-modal";
