@@ -39,6 +39,22 @@ Thumbs.db
 # --- CONFIGURACIONES ---
 *.config.js
 
+# --- FRONTEND (Vite / React) ---
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# --- BACKEND adicional ---
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# --- MISC ---
+*.pem
+.DS_Store
+Thumbs.db
+
 # --- TEMPORALES ---
 *.tmp
 *.temp
