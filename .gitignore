@@ -49,6 +49,10 @@ frontend/.env.*
 backend/.env
 backend/.env.*
 !backend/.env.example
+backend/src/migrations/
+
+# Archivos de caché de ts-node
+*.js.map
 
 # --- MISC ---
 *.pem
