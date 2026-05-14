@@ -4,7 +4,7 @@ import { Header } from "./app/components/header";
 import { FilterBar, Filters } from "./app/components/filter-bar";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 import { SpeciesModal } from "./app/components/species-modal";
-import { useAuth } from "./context/authContext";
+import { useAuth } from "./context/auth-context";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
 
 export default function App() {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/auth-context';
 import { api } from "../../services/api";
 
 export function ProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
