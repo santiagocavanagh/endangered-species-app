@@ -11,6 +11,18 @@ const getAuthHeaders = (): Record<string, string> => {
   return headers;
 };
 
+const categoryToKingdom: Record<string, string> = {
+  animal: "animalia",
+  planta: "plantae",
+  hongo: "fungi",
+};
+
+const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
+  animalia: "animal",
+  plantae: "planta",
+  fungi: "hongo",
+};
+
 export const api = {
   fetchSpecies: async (): Promise<any[]> => {
     try {
@@ -20,13 +32,6 @@ export const api = {
       const result = await response.json();
       const list = result.data ?? result;
 
-      const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
-        animalia: "animal",
-        plantae: "planta",
-        fungi: "hongo",
-      };
-
-      // Map backend ResponseDTO -> frontend Species shape
       return list.map((s: any) => {
         const kingdom = String(s.taxonomy?.kingdom ?? "").toLowerCase();
         return {
@@ -35,7 +40,6 @@ export const api = {
           scientificName: s.scientificName ?? "",
           status: s.iucnStatus ?? s.status ?? "",
           habitat: s.habitat ?? "",
-          // join regions into single string for UI
           region: Array.isArray(s.regions)
             ? s.regions.join(", ")
             : s.region || "",
@@ -46,7 +50,6 @@ export const api = {
           imageUrl:
             Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
           category: kingdomMap[kingdom] ?? "animal",
-          // keep raw backend object for advanced UI if needed
           _raw: s,
         };
       });
@@ -58,18 +61,18 @@ export const api = {
 
   createSpecies: async (data: any): Promise<any> => {
     try {
-      // map frontend form -> backend CreateDTO
       const taxonomies = await api.getTaxonomies();
       const regions = await api.getRegions();
 
       const category = (data.category || "").toLowerCase();
+      const kingdomSearch = categoryToKingdom[category] ?? category;
+
       const taxonomy =
         taxonomies.find(
-          (t: any) => String(t.kingdom).toLowerCase() === category,
+          (t: any) => String(t.kingdom).toLowerCase() === kingdomSearch,
         ) || taxonomies[0];
       const taxonomyId = taxonomy ? taxonomy.id : undefined;
 
-      // support multiple regions comma-separated
       const regionNames = (data.region || "")
         .split(",")
         .map((r: string) => r.trim())
@@ -87,10 +90,10 @@ export const api = {
         scientificName: data.scientificName,
         commonName: data.name || undefined,
         iucnStatus: data.status,
-        taxonomyId: taxonomyId,
+        taxonomyId,
         description: data.description || undefined,
         habitat: data.habitat || undefined,
-        regionIds: regionIds,
+        regionIds,
       };
 
       if (data.population) {
@@ -103,9 +106,6 @@ export const api = {
           payload.censusDate = new Date().toISOString().split("T")[0];
         }
       }
-
-      // include imageUrl so backend service can create SpeciesMedia
-      if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
       const res = await fetch(`${API_URL}/species`, {
         method: "POST",
@@ -121,14 +121,15 @@ export const api = {
 
   updateSpecies: async (id: number, data: any): Promise<any> => {
     try {
-      // perform same mapping as create
       const taxonomies = await api.getTaxonomies();
       const regions = await api.getRegions();
 
       const category = (data.category || "").toLowerCase();
+      const kingdomSearch = categoryToKingdom[category] ?? category;
+
       const taxonomy =
         taxonomies.find(
-          (t: any) => String(t.kingdom).toLowerCase() === category,
+          (t: any) => String(t.kingdom).toLowerCase() === kingdomSearch,
         ) || taxonomies[0];
       const taxonomyId = taxonomy ? taxonomy.id : undefined;
 
@@ -149,7 +150,7 @@ export const api = {
         scientificName: data.scientificName,
         commonName: data.name || undefined,
         iucnStatus: data.status,
-        taxonomyId: taxonomyId,
+        taxonomyId,
         description: data.description || undefined,
         habitat: data.habitat || undefined,
         regionIds: regionIds.length ? regionIds : undefined,
@@ -165,8 +166,6 @@ export const api = {
           payload.censusDate = new Date().toISOString().split("T")[0];
         }
       }
-
-      if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
       const res = await fetch(`${API_URL}/species/${id}`, {
         method: "PATCH",
@@ -187,43 +186,10 @@ export const api = {
         headers: getAuthHeaders(),
       });
       if (res.status === 204) return { success: true };
-
       return await res.json();
     } catch (error) {
       return { error: "No se pudo eliminar" };
     }
-  },
-
-  login: async (credentials: {
-    email: string;
-    password: string;
-  }): Promise<any> => {
-    try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-      if (!res.ok) throw new Error("Credenciales incorrectas");
-      return await res.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  },
-
-  register: async (payload: {
-    email: string;
-    password: string;
-    name?: string;
-    role?: string;
-  }) => {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return await res.json();
   },
 
   getTaxonomies: async () => {
@@ -248,21 +214,49 @@ export const api = {
     }
   },
 
+  register: async (payload: {
+    email: string;
+    password: string;
+    name?: string;
+    role?: string;
+  }) => {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  },
+
+  login: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<any> => {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      if (!res.ok) throw new Error("Credenciales incorrectas");
+      return await res.json();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
   updateProfile: async (data: { name?: string; password?: string }) => {
     const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-
     const response = await fetch(`${API_URL}/auth/update-profile`, {
       method: "PUT",
       headers,
       body: JSON.stringify(data),
     });
-
     const result = await response.json();
-
     if (!response.ok) {
       throw new Error(result.error || "Error al actualizar el perfil");
     }
-
     return result;
   },
 
