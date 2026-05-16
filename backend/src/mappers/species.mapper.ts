@@ -31,7 +31,10 @@ export function SpeciesMapper(species: Species): SpeciesDTO {
 
     latestCensus: latest && {
       population: latest.population,
-      date: latest.censusDate.toISOString(),
+      date:
+        latest.censusDate instanceof Date
+          ? latest.censusDate.toISOString().split("T")[0]
+          : String(latest.censusDate),
       source: latest.source && {
         id: latest.source.id,
         name: latest.source.name,
