@@ -7,6 +7,7 @@ A full-stack web application for tracking, managing, and raising awareness about
 ## 🚀 Tech Stack
 
 ### Backend
+
 - **Runtime:** Node.js 18+
 - **Framework:** Express 5
 - **Language:** TypeScript 5
@@ -16,10 +17,23 @@ A full-stack web application for tracking, managing, and raising awareness about
 - **Security:** Helmet, CORS, express-rate-limit
 
 ### Frontend
-- *(In progress)*
+
+- _(In progress)_
 
 ### Database
+
 - MySQL 8
+
+erDiagram
+users ||--o{ favorites : "tiene"
+species ||--o{ favorites : "es marcada en"
+species ||--o{ species_media : "contiene"
+species ||--o{ population_census : "registra"
+species ||--o{ status_history : "historial"
+taxonomy ||--o{ species : "clasifica"
+data_source ||--o{ population_census : "provee"
+data_source ||--o{ status_history : "respalda"
+species }o--o{ region : "habita"
 
 ---
 
@@ -59,9 +73,9 @@ The API uses JWT Bearer token authentication with the following features:
 
 ### Roles
 
-| Role | Permissions |
-|------|-------------|
-| `user` | Read species, manage own favorites |
+| Role    | Permissions                               |
+| ------- | ----------------------------------------- |
+| `user`  | Read species, manage own favorites        |
 | `admin` | Full CRUD on species, regions, taxonomies |
 
 ---
@@ -71,63 +85,69 @@ The API uses JWT Bearer token authentication with the following features:
 Base URL: `http://localhost:3000/api`
 
 ### Auth
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/auth/register` | Public | Register a new user |
-| POST | `/auth/login` | Public | Login and receive JWT |
-| PUT | `/auth/update-profile` | Authenticated | Update name or password |
+
+| Method | Endpoint               | Access        | Description             |
+| ------ | ---------------------- | ------------- | ----------------------- |
+| POST   | `/auth/register`       | Public        | Register a new user     |
+| POST   | `/auth/login`          | Public        | Login and receive JWT   |
+| PUT    | `/auth/update-profile` | Authenticated | Update name or password |
 
 ### Species
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/species` | Public | List all species (paginated) |
-| GET | `/species/critical` | Public | Species with CR/EN/VU status |
-| GET | `/species/rescued` | Public | Species with NT/LC status |
-| GET | `/species/:id` | Public | Get species by ID |
-| POST | `/species` | Admin | Create new species |
-| PATCH | `/species/:id` | Admin | Update species |
-| DELETE | `/species/:id` | Admin | Delete species |
+
+| Method | Endpoint            | Access | Description                  |
+| ------ | ------------------- | ------ | ---------------------------- |
+| GET    | `/species`          | Public | List all species (paginated) |
+| GET    | `/species/critical` | Public | Species with CR/EN/VU status |
+| GET    | `/species/rescued`  | Public | Species with NT/LC status    |
+| GET    | `/species/:id`      | Public | Get species by ID            |
+| POST   | `/species`          | Admin  | Create new species           |
+| PATCH  | `/species/:id`      | Admin  | Update species               |
+| DELETE | `/species/:id`      | Admin  | Delete species               |
 
 ### Favorites
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/favorites` | Authenticated | Get user's favorite species |
-| POST | `/favorites/:id` | Authenticated | Add species to favorites |
+
+| Method | Endpoint         | Access        | Description                   |
+| ------ | ---------------- | ------------- | ----------------------------- |
+| GET    | `/favorites`     | Authenticated | Get user's favorite species   |
+| POST   | `/favorites/:id` | Authenticated | Add species to favorites      |
 | DELETE | `/favorites/:id` | Authenticated | Remove species from favorites |
 
 ### Regions
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/regions` | Public | List all regions |
-| GET | `/regions/:id` | Public | Get region by ID |
+
+| Method | Endpoint       | Access | Description      |
+| ------ | -------------- | ------ | ---------------- |
+| GET    | `/regions`     | Public | List all regions |
+| GET    | `/regions/:id` | Public | Get region by ID |
 
 ### Taxonomies
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/taxonomies` | Public | List all taxonomies |
-| GET | `/taxonomies/:id` | Public | Get taxonomy by ID |
+
+| Method | Endpoint          | Access | Description         |
+| ------ | ----------------- | ------ | ------------------- |
+| GET    | `/taxonomies`     | Public | List all taxonomies |
+| GET    | `/taxonomies/:id` | Public | Get taxonomy by ID  |
 
 ---
 
 ## 🧬 IUCN Conservation Statuses
 
-| Code | Status |
-|------|--------|
-| EX | Extinct |
-| EW | Extinct in the Wild |
-| CR | Critically Endangered |
-| EN | Endangered |
-| VU | Vulnerable |
-| NT | Near Threatened |
-| LC | Least Concern |
-| DD | Data Deficient |
-| NE | Not Evaluated |
+| Code | Status                |
+| ---- | --------------------- |
+| EX   | Extinct               |
+| EW   | Extinct in the Wild   |
+| CR   | Critically Endangered |
+| EN   | Endangered            |
+| VU   | Vulnerable            |
+| NT   | Near Threatened       |
+| LC   | Least Concern         |
+| DD   | Data Deficient        |
+| NE   | Not Evaluated         |
 
 ---
 
 ## ⚙️ Local Setup
 
 ### Prerequisites
+
 - Node.js 18+
 - MySQL 8
 - npm
