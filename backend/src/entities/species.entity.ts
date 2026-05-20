@@ -48,6 +48,7 @@ export class Species {
   @Column({
     name: "taxonomy_id",
     type: "int",
+    unsigned: true,
   })
   taxonomyId: number;
 
@@ -74,7 +75,7 @@ export class Species {
   @ManyToOne(() => Taxonomy, (taxonomy) => taxonomy.species, {
     onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: "taxonomy_id" })
+  @JoinColumn({ name: "taxonomy_id", referencedColumnName: "id" })
   taxonomy: Taxonomy;
 
   @ManyToMany(() => Region, (region) => region.species)

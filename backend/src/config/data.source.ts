@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
     ENV.NODE_ENV === "production"
       ? ["dist/**/*.entity.js"]
       : ["src/**/*.entity.ts"],
-  synchronize: false,
+  synchronize: true,
   logging: ENV.NODE_ENV === "development",
   ssl: ENV.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
 });
