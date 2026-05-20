@@ -2,16 +2,22 @@
 node_modules/
 **/node_modules/
 
-# --- SEGURIDAD ---
-.env.development
-.env.production
-.env.local
-.env.*.local
+# --- SEGURIDAD (BLINDADO GLOBAL) ---
+.env
+*.env
+.env.*
+**/.env
+**/.env.*
+# Excepciones seguras para que tus compañeros o tú tengan la plantilla de guía
+!**/激.env.example
+!**/.env.example
 
 # --- COMPILACIÓN ---
 dist/
+**/dist/
 migrations/
 dist/migrations/
+backend/src/migrations/
 coverage/
 build/
 out/
@@ -35,32 +41,17 @@ Thumbs.db
 
 # --- TYPESCRIPT ---
 *.tsbuildinfo
+*.js.map
 
 # --- CONFIGURACIONES ---
 *.config.js
 
-# --- FRONTEND (Vite / React) ---
-frontend/dist/
-frontend/.env
-frontend/.env.*
-!frontend/.env.example
+# --- FRONTEND Y BACKEND (Especificidades de Vite) ---
 frontend/.vite/
+.vite/
 
-# --- BACKEND adicional ---
-backend/.env
-backend/.env.*
-!backend/.env.example
-backend/src/migrations/
-
-# Archivos de caché de ts-node
-*.js.map
-
-# --- MISC ---
+# --- MISC Y TEMPORALES ---
 *.pem
-.DS_Store
-Thumbs.db
-
-# --- TEMPORALES ---
 *.tmp
 *.temp
 ormconfig.json
