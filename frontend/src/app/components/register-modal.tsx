@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/auth-context';
 import { Label } from './ui/label';
-import { X, Lock, Mail, Loader2 } from 'lucide-react';
 import { cn } from './ui/utils';
+import { X, Lock, Mail, Loader2 } from 'lucide-react';
+import { toast } from "sonner";
 
 export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [email, setEmail] = useState('');
@@ -21,9 +22,10 @@ export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
       // Auto-login after successful registration
       const loginData = await api.login({ email, password });
       login(loginData.token, loginData.role, loginData.email, loginData.name);
+      toast.success("¡Cuenta creada exitosamente! Bienvenido a EcoGuard.");
       onClose();
     } catch (err) {
-      alert("Credenciales incorrectas. Intenta de nuevo.");
+      toast.error("Error al registrarse. El email puede estar en uso.");
     } finally {
       setLoading(false);
     }

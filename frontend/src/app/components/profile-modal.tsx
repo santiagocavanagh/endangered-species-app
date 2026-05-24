@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from '../../context/auth-context';
 import { api } from "../../services/api";
+import { toast } from "sonner";
 
 export function ProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const { user, login } = useAuth(); 
@@ -19,7 +20,6 @@ export function ProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: ()
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       // Llamada real a la API
       const response = await api.updateProfile({ 
@@ -35,12 +35,11 @@ export function ProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: ()
           response.user.name
         );
       }
-
-      alert("¡Perfil actualizado con éxito!");
+      toast.success("¡Perfil actualizado con éxito!");
       setPassword('');
       onClose();
     } catch (error: any) {
-      alert(error.message || "Error al actualizar");
+      toast.error(error.message || "Error al actualizar el perfil");
     } finally {
       setLoading(false);
     }

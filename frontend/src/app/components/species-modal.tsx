@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Label } from "./ui/label";
-import { X, Save, Trash2, Loader2 } from "lucide-react";
 import { api } from "../../services/api";
 import { Species } from "./species-card";
+import { Label } from "./ui/label";
+import { X, Save, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SpeciesModalProps {
   isOpen: boolean;
@@ -57,30 +58,36 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
       : await api.createSpecies(formData);
 
     setLoading(false);
-
     if (res.error) {
-      alert("Error: " + res.error);
+      toast.error("Error: " + res.error);
     } else {
+      toast.success(speciesToEdit ? "Especie actualizada correctamente" : "Especie creada correctamente");
       onSuccess();
       onClose();
     }
   };
 
-  const handleDelete = async () => {
-    if (!speciesToEdit) return;
-    if (!window.confirm(`¿Estás seguro de eliminar "${speciesToEdit.name}"?`)) return;
-
-    setLoading(true);
-    const res = await api.deleteSpecies(speciesToEdit.id);
-    setLoading(false);
-
-    if (res.error) {
-      alert("Error al eliminar: " + res.error);
-    } else {
-      onSuccess();
-      onClose();
-    }
-  };
+  const handleDelete = () => {
+  if (!speciesToEdit) return;
+  toast(`¿Eliminar "${speciesToEdit.name}"?`, {
+    action: {
+      label: "Eliminar",
+      onClick: async () => {
+        setLoading(true);
+        const res = await api.deleteSpecies(speciesToEdit.id);
+        setLoading(false);
+        if (res.error) {
+          toast.error("Error al eliminar: " + res.error);
+        } else {
+          toast.success("Especie eliminada correctamente");
+          onSuccess();
+          onClose();
+        }
+      },
+    },
+    cancel: { label: "Cancelar", onClick: () => {} },
+  });
+};
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

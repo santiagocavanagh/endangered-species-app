@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "./services/api";
+import { useAuth } from "./context/auth-context";
 import { Header } from "./app/components/header";
 import { FilterBar, Filters } from "./app/components/filter-bar";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 import { SpeciesModal } from "./app/components/species-modal";
-import { useAuth } from "./context/auth-context";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
+import { toast, Toaster } from "sonner";
 
 export default function App() {
   const { isAdmin } = useAuth();
@@ -15,12 +16,7 @@ export default function App() {
   const [view, setView] = useState<"all" | "favorites">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speciesToEdit, setSpeciesToEdit] = useState<Species | null>(null);
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    status: "all",
-    habitat: "all",
-    region: "all",
-  });
+  const [filters, setFilters] = useState<Filters>({search: "", status: "all", habitat: "all", region: "all",});
 
   const loadData = useCallback(async () => {
     try {
@@ -50,6 +46,24 @@ export default function App() {
     setSpeciesToEdit(species);
     setIsModalOpen(true);
   };
+  
+const handleDelete = (id: number) => {
+  toast("¿Eliminar esta especie?", {
+    action: {
+      label: "Eliminar",
+      onClick: async () => {
+        const res = await api.deleteSpecies(id);
+        if (!res.error) {
+          loadData();
+          toast.success("Especie eliminada correctamente");
+        } else {
+          toast.error("Error al eliminar la especie");
+        }
+      },
+    },
+    cancel: { label: "Cancelar", onClick: () => {} },
+  });
+};
 
   const toggleFavorite = async (id: number) => {
     if (favorites.has(id)) {
@@ -104,10 +118,6 @@ const displaySpecies = useMemo(() => {
 }, [baseSpecies, activeCategory, filters]);
 
 
-const favoriteSpeciesList = useMemo(() => {
-  return allSpecies.filter(s => favorites.has(s.id));
-}, [allSpecies, favorites]);
-
   return (
     <div className="size-full flex flex-col bg-gray-50">
       <Header
@@ -117,7 +127,7 @@ const favoriteSpeciesList = useMemo(() => {
           setView("all");
         }}
       />
-      
+
       <FilterBar
         category={activeCategory}
         onFilterChange={setFilters}
@@ -175,6 +185,7 @@ const favoriteSpeciesList = useMemo(() => {
                   isFavorite={favorites.has(s.id)}
                   onToggleFavorite={toggleFavorite}
                   onEdit={handleOpenEdit}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
@@ -189,6 +200,7 @@ const favoriteSpeciesList = useMemo(() => {
         speciesToEdit={speciesToEdit}
         activeCategory={activeCategory}
       />
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

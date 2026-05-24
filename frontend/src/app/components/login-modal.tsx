@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/auth-context';
+import { cn } from './ui/utils';
 import { Label } from './ui/label';
 import { X, Lock, Mail, Loader2 } from 'lucide-react';
-import { cn } from './ui/utils';
+import { toast } from "sonner";
 
 export function LoginModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
       login(data.token, data.role, data.email, data.name);
       onClose();
     } catch (err) {
-      alert("Credenciales incorrectas. Intenta de nuevo.");
+      toast.error("Credenciales incorrectas. Intentá de nuevo.");
     } finally {
       setLoading(false);
     }

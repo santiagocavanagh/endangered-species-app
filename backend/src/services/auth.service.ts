@@ -27,7 +27,7 @@ export class AuthService {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (data.role === UserRole.ADMIN) {
-      const adminSecret = process.env["ADMIN_REGISTER_SECRET"];
+      const adminSecret = ENV.ADMIN_REGISTER_SECRET;
       if (!adminSecret || data.adminSecret !== adminSecret) {
         throw new ForbiddenError("No autorizado para crear administradores");
       }
