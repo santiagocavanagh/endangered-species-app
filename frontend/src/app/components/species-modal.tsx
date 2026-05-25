@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import { Label } from "./ui/label";
+import { X, Save, Trash2, Loader2, Search } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "../../services/api";
 import { Species } from "./species-card";
-import { Label } from "./ui/label";
-import { X, Save, Trash2, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface SpeciesModalProps {
   isOpen: boolean;
@@ -13,9 +13,21 @@ interface SpeciesModalProps {
   activeCategory: "animal" | "planta" | "hongo";
 }
 
-type SpeciesForm = Omit<Species, 'id'>;
+type SpeciesForm = Omit<Species, "id">;
 
-export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, activeCategory }: SpeciesModalProps) {
+interface Region {
+  id: number;
+  name: string;
+  type: string;
+}
+
+export function SpeciesModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  speciesToEdit,
+  activeCategory,
+}: SpeciesModalProps) {
   const initialForm: SpeciesForm = {
     name: "",
     scientificName: "",
@@ -24,14 +36,30 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
     region: "",
     population: "",
     imageUrl: "",
-    category: activeCategory
+    category: activeCategory,
   };
 
   const [formData, setFormData] = useState<SpeciesForm>(initialForm);
   const [loading, setLoading] = useState(false);
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [regionSearch, setRegionSearch] = useState("");
 
+  // Cargar regiones cuando abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      api.getRegions().then((data) => setRegions(data));
+    }
+  }, [isOpen]);
+
+  // Poblar el form al editar o resetear al crear
   useEffect(() => {
     if (speciesToEdit) {
+      const regionNames = speciesToEdit.region
+        .split(", ")
+        .map((r) => r.trim())
+        .filter(Boolean);
+      setSelectedRegions(regionNames);
       setFormData({
         name: speciesToEdit.name,
         scientificName: speciesToEdit.scientificName,
@@ -44,50 +72,71 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
       });
     } else {
       setFormData({ ...initialForm, category: activeCategory });
+      setSelectedRegions([]);
     }
+    setRegionSearch("");
   }, [speciesToEdit, isOpen, activeCategory]);
 
   if (!isOpen) return null;
+
+  const toggleRegion = (regionName: string) => {
+    setSelectedRegions((prev) => {
+      const next = prev.includes(regionName)
+        ? prev.filter((r) => r !== regionName)
+        : [...prev, regionName];
+      setFormData((f) => ({ ...f, region: next.join(", ") }));
+      return next;
+    });
+  };
+
+  const filteredRegions = regions.filter((r) =>
+    r.name.toLowerCase().includes(regionSearch.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const res = speciesToEdit 
+    const res = speciesToEdit
       ? await api.updateSpecies(speciesToEdit.id, formData)
       : await api.createSpecies(formData);
 
     setLoading(false);
+
     if (res.error) {
       toast.error("Error: " + res.error);
     } else {
-      toast.success(speciesToEdit ? "Especie actualizada correctamente" : "Especie creada correctamente");
+      toast.success(
+        speciesToEdit
+          ? "Especie actualizada correctamente"
+          : "Especie creada correctamente"
+      );
       onSuccess();
       onClose();
     }
   };
 
   const handleDelete = () => {
-  if (!speciesToEdit) return;
-  toast(`¿Eliminar "${speciesToEdit.name}"?`, {
-    action: {
-      label: "Eliminar",
-      onClick: async () => {
-        setLoading(true);
-        const res = await api.deleteSpecies(speciesToEdit.id);
-        setLoading(false);
-        if (res.error) {
-          toast.error("Error al eliminar: " + res.error);
-        } else {
-          toast.success("Especie eliminada correctamente");
-          onSuccess();
-          onClose();
-        }
+    if (!speciesToEdit) return;
+    toast(`¿Eliminar "${speciesToEdit.name}"?`, {
+      action: {
+        label: "Eliminar",
+        onClick: async () => {
+          setLoading(true);
+          const res = await api.deleteSpecies(speciesToEdit.id);
+          setLoading(false);
+          if (res.error) {
+            toast.error("Error al eliminar: " + res.error);
+          } else {
+            toast.success("Especie eliminada correctamente");
+            onSuccess();
+            onClose();
+          }
+        },
       },
-    },
-    cancel: { label: "Cancelar", onClick: () => {} },
-  });
-};
+      cancel: { label: "Cancelar", onClick: () => {} },
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -95,7 +144,7 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
         <div className="p-6 border-b flex justify-between items-center bg-gray-50">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              {speciesToEdit ? 'Editar Registro' : 'Nueva Especie'}
+              {speciesToEdit ? "Editar Registro" : "Nueva Especie"}
             </h2>
             <p className="text-sm text-gray-500 capitalize">{formData.category}</p>
           </div>
@@ -104,7 +153,10 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-6 max-h-[75vh] overflow-y-auto"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre Común</Label>
@@ -113,7 +165,7 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 required
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 value={formData.name}
-                onChange={e => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -122,7 +174,9 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 id="scientificName"
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none italic"
                 value={formData.scientificName}
-                onChange={e => setFormData({...formData, scientificName: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, scientificName: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -131,7 +185,9 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 id="status"
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
                 value={formData.status}
-                onChange={e => setFormData({...formData, status: e.target.value as any})}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value as any })
+                }
               >
                 <option value="EX">Extinto</option>
                 <option value="CR">En Peligro Crítico</option>
@@ -142,43 +198,119 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="region">Región / Ubicación</Label>
-              <input
-                id="region"
-                className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.region}
-                onChange={e => setFormData({...formData, region: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="habitat">Hábitat</Label>
               <input
                 id="habitat"
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 value={formData.habitat}
-                onChange={e => setFormData({...formData, habitat: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, habitat: e.target.value })
+                }
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="population">Población Estimada</Label>
               <input
                 id="population"
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 value={formData.population}
-                onChange={e => setFormData({...formData, population: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, population: e.target.value })
+                }
               />
             </div>
           </div>
+
+          {/* ── Selector de regiones ── */}
+          <div className="space-y-2">
+            <Label>
+              Regiones
+              {selectedRegions.length > 0 && (
+                <span className="ml-2 text-xs font-normal text-emerald-600">
+                  {selectedRegions.length} seleccionada
+                  {selectedRegions.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </Label>
+
+            {/* Badges de regiones seleccionadas */}
+            {selectedRegions.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {selectedRegions.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs rounded-full"
+                  >
+                    {r}
+                    <button
+                      type="button"
+                      onClick={() => toggleRegion(r)}
+                      className="hover:text-red-600 font-bold leading-none"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Buscador */}
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-2.5 text-gray-400"
+                size={14}
+              />
+              <input
+                placeholder="Buscar región..."
+                value={regionSearch}
+                onChange={(e) => setRegionSearch(e.target.value)}
+                className="w-full pl-8 pr-4 py-2 border rounded-md text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+
+            {/* Lista con checkboxes */}
+            <div className="border rounded-md max-h-44 overflow-y-auto divide-y">
+              {filteredRegions.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-3">
+                  Sin resultados
+                </p>
+              ) : (
+                filteredRegions.map((r) => (
+                  <label
+                    key={r.id}
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRegions.includes(r.name)}
+                      onChange={() => toggleRegion(r.name)}
+                      className="accent-emerald-600"
+                    />
+                    <span className="text-sm text-gray-700">{r.name}</span>
+                    <span className="ml-auto text-[10px] text-gray-400 capitalize">
+                      {r.type}
+                    </span>
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* URL imagen */}
           <div className="space-y-2">
             <Label htmlFor="imageUrl">URL de la Imagen</Label>
             <input
               id="imageUrl"
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
               value={formData.imageUrl}
-              onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, imageUrl: e.target.value })
+              }
               placeholder="https://images.unsplash.com/..."
             />
           </div>
+
+          {/* Botones */}
           <div className="pt-4 border-t flex flex-col sm:flex-row justify-between gap-3">
             {speciesToEdit && (
               <button
@@ -190,7 +322,6 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 <Trash2 size={18} /> Eliminar Registro
               </button>
             )}
-
             <div className="flex flex-col sm:flex-row gap-3 ml-auto w-full sm:w-auto">
               <button
                 type="button"
@@ -204,8 +335,12 @@ export function SpeciesModal({ isOpen, onClose, onSuccess, speciesToEdit, active
                 disabled={loading}
                 className="flex items-center justify-center gap-2 px-8 py-2 bg-emerald-600 text-white font-bold rounded-md hover:bg-emerald-700 shadow-lg active:scale-95 transition-all disabled:bg-gray-400"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                {speciesToEdit ? 'Actualizar Especie' : 'Crear Especie'}
+                {loading ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <Save size={18} />
+                )}
+                {speciesToEdit ? "Actualizar Especie" : "Crear Especie"}
               </button>
             </div>
           </div>

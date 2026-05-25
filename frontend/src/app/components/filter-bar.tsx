@@ -1,6 +1,14 @@
+import { useEffect, useState } from "react";
+import { api } from "../../services/api";
 import { Filter } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface FilterBarProps {
   category: "animal" | "planta" | "hongo";
@@ -20,6 +28,22 @@ export function FilterBar({
   onFilterChange,
   filters,
 }: FilterBarProps) {
+  const [regionOptions, setRegionOptions] = useState<
+    { value: string; label: string }[]
+  >([{ value: "all", label: "Todas las regiones" }]);
+
+  useEffect(() => {
+    api.getRegions().then((data: any[]) => {
+      const continents = data
+        .filter((r) => r.type === "continent")
+        .map((r) => ({ value: r.name, label: r.name }));
+      setRegionOptions([
+        { value: "all", label: "Todas las regiones" },
+        ...continents,
+      ]);
+    });
+  }, []);
+
   const statusOptions = [
     { value: "all", label: "Todos los estados" },
     { value: "EX", label: "Extinto" },
@@ -29,6 +53,7 @@ export function FilterBar({
     { value: "NT", label: "Casi Amenazado" },
     { value: "LC", label: "Preocupación Menor" },
   ];
+
   const habitatOptions = {
     animal: [
       { value: "all", label: "Todos los hábitats" },
@@ -52,21 +77,13 @@ export function FilterBar({
       { value: "montaña", label: "Montaña" },
     ],
   };
-  const regionOptions = [
-    { value: "all", label: "Todas las regiones" },
-    { value: "america", label: "América" },
-    { value: "europa", label: "Europa" },
-    { value: "asia", label: "Asia" },
-    { value: "africa", label: "África" },
-    { value: "oceania", label: "Oceanía" },
-  ];
 
   return (
     <div className="w-full bg-gray-50 border-b px-6 py-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
-          <Filter className="h-5 w-5 text-gray-500" />
-          <div className="flex-1 grid grid-cols-4 gap-3">
+          <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
             <Input
               placeholder="Buscar especies..."
               value={filters.search}
