@@ -5,6 +5,7 @@ import { useAuth } from "../../context/auth-context";
 
 export interface Species {
   id: number;
+  taxonomyId?: number;
   name: string;
   scientificName: string;
   status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
@@ -20,7 +21,7 @@ interface SpeciesCardProps {
   isFavorite: boolean;
   onToggleFavorite: (id: number) => void;
   onEdit?: (species: Species) => void;
-  onDelete?: (id: number) => void; 
+  onDelete?: (id: number) => void;
 }
 
 export function SpeciesCard({
@@ -30,7 +31,6 @@ export function SpeciesCard({
   onEdit,
   onDelete,
 }: SpeciesCardProps) {
-  
   const { isAdmin } = useAuth();
   const statusConfig = {
     CR: {
@@ -67,7 +67,7 @@ export function SpeciesCard({
           alt={species.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        
+
         {isAdmin && (
           <div className="absolute top-3 left-3 flex gap-2 z-10">
             <button

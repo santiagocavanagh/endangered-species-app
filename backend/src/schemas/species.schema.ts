@@ -30,6 +30,7 @@ export const createSpeciesSchema = z
     censusDate: z.coerce.date().optional(),
     sourceId: z.coerce.number().int().positive().optional(),
     notes: z.string().optional(),
+    imageUrl: z.string().url().optional(),
   })
   .strict();
 

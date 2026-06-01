@@ -40,6 +40,7 @@ export const api = {
           scientificName: s.scientificName ?? "",
           status: s.iucnStatus ?? s.status ?? "",
           habitat: s.habitat ?? "",
+          taxonomyId: Number(s.taxonomyId),
           region: Array.isArray(s.regions)
             ? s.regions.join(", ")
             : s.region || "",
@@ -71,7 +72,9 @@ export const api = {
         taxonomies.find(
           (t: any) => String(t.kingdom).toLowerCase() === kingdomSearch,
         ) || taxonomies[0];
-      const taxonomyId = taxonomy ? taxonomy.id : undefined;
+
+      const taxonomyId: number | undefined =
+        data.taxonomyId ?? (taxonomy ? taxonomy.id : undefined);
 
       const regionNames = (data.region || "")
         .split(",")
@@ -90,11 +93,13 @@ export const api = {
         scientificName: data.scientificName,
         commonName: data.name || undefined,
         iucnStatus: data.status,
-        taxonomyId,
         description: data.description || undefined,
         habitat: data.habitat || undefined,
+        taxonomyId,
         regionIds,
       };
+
+      if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
       if (data.population) {
         const parsed = parseInt(
@@ -131,7 +136,9 @@ export const api = {
         taxonomies.find(
           (t: any) => String(t.kingdom).toLowerCase() === kingdomSearch,
         ) || taxonomies[0];
-      const taxonomyId = taxonomy ? taxonomy.id : undefined;
+
+      const taxonomyId: number | undefined =
+        data.taxonomyId ?? (taxonomy ? taxonomy.id : undefined);
 
       const regionNames = (data.region || "")
         .split(",")
@@ -155,6 +162,8 @@ export const api = {
         habitat: data.habitat || undefined,
         regionIds: regionIds.length ? regionIds : undefined,
       };
+
+      if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
       if (data.population) {
         const parsed = parseInt(

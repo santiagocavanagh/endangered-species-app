@@ -13,13 +13,27 @@ interface SpeciesModalProps {
   activeCategory: "animal" | "planta" | "hongo";
 }
 
-type SpeciesForm = Omit<Species, "id">;
+type SpeciesForm = Omit<Species, "id"> & { taxonomyId?: number };
+
+interface Taxonomy {
+  id: number;
+  kingdom: string;
+  orderName: string;
+  family: string;
+  genus: string;
+}
 
 interface Region {
   id: number;
   name: string;
   type: string;
 }
+
+const categoryToKingdom: Record<string, string> = {
+  animal: "animalia",
+  planta: "plantae",
+  hongo: "fungi",
+};
 
 export function SpeciesModal({
   isOpen,
@@ -29,6 +43,7 @@ export function SpeciesModal({
   activeCategory,
 }: SpeciesModalProps) {
   const initialForm: SpeciesForm = {
+    taxonomyId: undefined,
     name: "",
     scientificName: "",
     status: "VU",
@@ -41,18 +56,33 @@ export function SpeciesModal({
 
   const [formData, setFormData] = useState<SpeciesForm>(initialForm);
   const [loading, setLoading] = useState(false);
+  const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
+  const [selectedTaxonomy, setSelectedTaxonomy] = useState<Taxonomy | null>(
+    null,
+  );
+  const [taxonomySearch, setTaxonomySearch] = useState("");
   const [regions, setRegions] = useState<Region[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [regionSearch, setRegionSearch] = useState("");
 
-  // Cargar regiones cuando abre el modal
   useEffect(() => {
-    if (isOpen) {
-      api.getRegions().then((data) => setRegions(data));
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    api.getRegions().then((data) => setRegions(data));
 
-  // Poblar el form al editar o resetear al crear
+    const kingdom = categoryToKingdom[activeCategory] ?? activeCategory;
+    api.getTaxonomies().then((data: any[]) => {
+      const filtered = data.filter(
+        (t) => String(t.kingdom).toLowerCase() === kingdom,
+      );
+      setTaxonomies(filtered);
+      if (speciesToEdit?.taxonomyId) {
+        const found = filtered.find((t) => t.id === speciesToEdit.taxonomyId);
+        setSelectedTaxonomy(found ?? null);
+      }
+    });
+  }, [isOpen, activeCategory, speciesToEdit?.taxonomyId]);
+
+  // reset/edición — limpiar taxonomía
   useEffect(() => {
     if (speciesToEdit) {
       const regionNames = speciesToEdit.region
@@ -61,6 +91,7 @@ export function SpeciesModal({
         .filter(Boolean);
       setSelectedRegions(regionNames);
       setFormData({
+        taxonomyId: speciesToEdit.taxonomyId,
         name: speciesToEdit.name,
         scientificName: speciesToEdit.scientificName,
         status: speciesToEdit.status,
@@ -73,8 +104,10 @@ export function SpeciesModal({
     } else {
       setFormData({ ...initialForm, category: activeCategory });
       setSelectedRegions([]);
+      setSelectedTaxonomy(null); // ← limpiar también taxonomía
     }
     setRegionSearch("");
+    setTaxonomySearch(""); // ← limpiar búsqueda
   }, [speciesToEdit, isOpen, activeCategory]);
 
   if (!isOpen) return null;
@@ -89,9 +122,28 @@ export function SpeciesModal({
     });
   };
 
+  const selectTaxonomy = (t: Taxonomy) => {
+    setSelectedTaxonomy(t);
+    setFormData((f) => ({ ...f, taxonomyId: t.id }));
+    setTaxonomySearch("");
+  };
   const filteredRegions = regions.filter((r) =>
-    r.name.toLowerCase().includes(regionSearch.toLowerCase())
+    r.name.toLowerCase().includes(regionSearch.toLowerCase()),
   );
+
+  const filteredTaxonomies = taxonomies.filter((t) => {
+    const q = taxonomySearch.toLowerCase();
+    return (
+      t.genus?.toLowerCase().includes(q) ||
+      t.family?.toLowerCase().includes(q) ||
+      t.orderName?.toLowerCase().includes(q)
+    );
+  });
+
+  const clearTaxonomy = () => {
+    setSelectedTaxonomy(null);
+    setFormData((f) => ({ ...f, taxonomyId: undefined }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +161,7 @@ export function SpeciesModal({
       toast.success(
         speciesToEdit
           ? "Especie actualizada correctamente"
-          : "Especie creada correctamente"
+          : "Especie creada correctamente",
       );
       onSuccess();
       onClose();
@@ -146,9 +198,14 @@ export function SpeciesModal({
             <h2 className="text-xl font-bold text-gray-800">
               {speciesToEdit ? "Editar Registro" : "Nueva Especie"}
             </h2>
-            <p className="text-sm text-gray-500 capitalize">{formData.category}</p>
+            <p className="text-sm text-gray-500 capitalize">
+              {formData.category}
+            </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X size={24} />
           </button>
         </div>
@@ -165,7 +222,9 @@ export function SpeciesModal({
                 required
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -220,7 +279,79 @@ export function SpeciesModal({
               />
             </div>
           </div>
+          {/* ── Selector de Taxonomía ── */}
+          <div className="space-y-2">
+            <Label>
+              Taxonomía
+              {selectedTaxonomy && (
+                <span className="ml-2 text-xs font-normal text-emerald-600">
+                  seleccionada
+                </span>
+              )}
+            </Label>
 
+            {selectedTaxonomy && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-sm text-emerald-800">
+                    {selectedTaxonomy.genus}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-2">
+                    {selectedTaxonomy.family} · {selectedTaxonomy.orderName}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearTaxonomy}
+                  className="text-gray-400 hover:text-red-500 font-bold flex-shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-2.5 text-gray-400"
+                size={14}
+              />
+              <input
+                placeholder="Buscar por género, familia u orden..."
+                value={taxonomySearch}
+                onChange={(e) => setTaxonomySearch(e.target.value)}
+                className="w-full pl-8 pr-4 py-2 border rounded-md text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+
+            <div className="border rounded-md max-h-44 overflow-y-auto divide-y">
+              {filteredTaxonomies.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-3">
+                  {taxonomySearch ? "Sin resultados" : "Escribí para buscar"}
+                </p>
+              ) : (
+                filteredTaxonomies.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => selectTaxonomy(t)}
+                    className={`w-full flex items-center gap-3 px-3 py-1.5 text-left hover:bg-gray-50 transition-colors ${
+                      selectedTaxonomy?.id === t.id ? "bg-emerald-50" : ""
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-gray-800 w-28 truncate">
+                      {t.genus}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate">
+                      {t.family}
+                    </span>
+                    <span className="ml-auto text-[10px] text-gray-400 flex-shrink-0">
+                      {t.orderName}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
           {/* ── Selector de regiones ── */}
           <div className="space-y-2">
             <Label>
@@ -232,7 +363,6 @@ export function SpeciesModal({
                 </span>
               )}
             </Label>
-
             {/* Badges de regiones seleccionadas */}
             {selectedRegions.length > 0 && (
               <div className="flex flex-wrap gap-1">
@@ -253,7 +383,6 @@ export function SpeciesModal({
                 ))}
               </div>
             )}
-
             {/* Buscador */}
             <div className="relative">
               <Search
@@ -267,7 +396,6 @@ export function SpeciesModal({
                 className="w-full pl-8 pr-4 py-2 border rounded-md text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
               />
             </div>
-
             {/* Lista con checkboxes */}
             <div className="border rounded-md max-h-44 overflow-y-auto divide-y">
               {filteredRegions.length === 0 ? (
@@ -295,7 +423,6 @@ export function SpeciesModal({
               )}
             </div>
           </div>
-
           {/* URL imagen */}
           <div className="space-y-2">
             <Label htmlFor="imageUrl">URL de la Imagen</Label>
@@ -309,7 +436,6 @@ export function SpeciesModal({
               placeholder="https://images.unsplash.com/..."
             />
           </div>
-
           {/* Botones */}
           <div className="pt-4 border-t flex flex-col sm:flex-row justify-between gap-3">
             {speciesToEdit && (
