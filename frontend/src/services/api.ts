@@ -46,7 +46,7 @@ export const api = {
             : s.region || "",
           population:
             s.latestCensus?.population !== undefined &&
-            s.latestCensus.population !== null
+            s.latestCensus?.population !== null
               ? String(s.latestCensus.population)
               : "",
           imageUrl:

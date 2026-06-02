@@ -41,7 +41,9 @@ export class SpeciesService {
       .createQueryBuilder("species")
       .leftJoinAndSelect("species.regions", "regions")
       .leftJoinAndSelect("species.taxonomy", "taxonomy")
-      .leftJoinAndSelect("species.media", "media");
+      .leftJoinAndSelect("species.media", "media")
+      .leftJoinAndSelect("species.populationCensus", "populationCensus")
+      .leftJoinAndSelect("populationCensus.source", "censusSource");
 
     if (query.region) {
       qb.andWhere("LOWER(regions.name) LIKE LOWER(:region)", {
