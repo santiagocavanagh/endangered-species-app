@@ -4,6 +4,7 @@ import { Species } from "../entities/species.entity";
 import { Region } from "../entities/region.entity";
 import { PopulationCensus } from "../entities/population-census.entity";
 import { Taxonomy } from "../entities/taxonomy.entity";
+import { SpeciesMedia } from "../entities/species-media.entity";
 import {
   DataSource as DataSourceEntity,
   DataSourceType,
@@ -129,6 +130,17 @@ export class SpeciesService {
           await this.createPopulationCensus(manager, created, data);
         }
 
+        if (data.imageUrl) {
+          const mediaRepo = manager.getRepository(SpeciesMedia);
+          await mediaRepo.save({
+            mediaUrl: data.imageUrl,
+            mediaType: "image",
+            species: created,
+            credit: null,
+            license: null,
+          });
+        }
+
         return created;
       },
     );
@@ -192,6 +204,21 @@ export class SpeciesService {
 
         if (data.population !== undefined) {
           await this.createPopulationCensus(manager, updated, data);
+        }
+
+        if (data.imageUrl !== undefined) {
+          const mediaRepo = manager.getRepository(SpeciesMedia);
+          // Elimina la imagen anterior y reemplaza con la nueva
+          await mediaRepo.delete({ species: { id: updated.id } });
+          if (data.imageUrl) {
+            await mediaRepo.save({
+              mediaUrl: data.imageUrl,
+              mediaType: "image",
+              species: updated,
+              credit: null,
+              license: null,
+            });
+          }
         }
 
         return updated;

@@ -45,8 +45,9 @@ export const api = {
             ? s.regions.join(", ")
             : s.region || "",
           population:
-            s.latestPopulation !== undefined && s.latestPopulation !== null
-              ? String(s.latestPopulation)
+            s.latestCensus?.population !== undefined &&
+            s.latestCensus.population !== null
+              ? String(s.latestCensus.population)
               : "",
           imageUrl:
             Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
