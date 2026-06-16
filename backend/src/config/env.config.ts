@@ -7,7 +7,6 @@ const envFile =
     : ".env.development";
 
 const envPath = path.resolve(process.cwd(), envFile);
-
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {

@@ -8,7 +8,7 @@ export interface Species {
   taxonomyId?: number;
   name: string;
   scientificName: string;
-  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX";
+  status: "CR" | "EN" | "VU" | "NT" | "LC" | "EX" | "EW" | string;
   habitat: string;
   region: string;
   population: string;
@@ -32,7 +32,7 @@ export function SpeciesCard({
   onDelete,
 }: SpeciesCardProps) {
   const { isAdmin } = useAuth();
-  const statusConfig = {
+  const statusConfig: Record<string, { label: string; color: string }> = {
     CR: {
       label: "En Peligro Crítico",
       color: "bg-red-100 text-red-800 border-red-200",
@@ -57,6 +57,15 @@ export function SpeciesCard({
       label: "Extinto",
       color: "bg-gray-100 text-gray-800 border-gray-200",
     },
+    EW: {
+      label: "Extinto en Silvestres",
+      color: "bg-purple-100 text-purple-800 border-purple-200",
+    },
+  };
+
+  const config = statusConfig[species.status] ?? {
+    label: species.status,
+    color: "bg-gray-100 text-gray-600 border-gray-200",
   };
 
   return (
@@ -100,9 +109,9 @@ export function SpeciesCard({
         </button>
 
         <div className="absolute bottom-3 left-3">
-          <Badge className={`${statusConfig[species.status].color} border`}>
+          <Badge className={`${config.color} border`}>
             <AlertTriangle className="h-3 w-3 mr-1" />
-            {statusConfig[species.status].label}
+            {config.label}
           </Badge>
         </div>
       </div>

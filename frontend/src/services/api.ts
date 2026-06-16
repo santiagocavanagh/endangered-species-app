@@ -24,40 +24,64 @@ const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
 };
 
 export const api = {
-  fetchSpecies: async (): Promise<any[]> => {
+  fetchSpecies: async (
+    params: {
+      kingdom?: string;
+      status?: string;
+      search?: string;
+      region?: string;
+      habitat?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ): Promise<{ data: any[]; total: number }> => {
     try {
-      const response = await fetch(`${API_URL}/species`);
+      const qp = new URLSearchParams({
+        limit: String(params.limit ?? 50),
+        page: String(params.page ?? 1),
+      });
+      if (params.kingdom) qp.append("taxonomy", params.kingdom);
+      if (params.status) qp.append("status", params.status);
+      if (params.search) qp.append("search", params.search);
+      if (params.region) qp.append("region", params.region);
+      if (params.habitat) qp.append("habitat", params.habitat);
+
+      const response = await fetch(`${API_URL}/species?${qp}`);
       if (!response.ok) throw new Error("Error en el servidor");
 
       const result = await response.json();
-      const list = result.data ?? result;
+      const list = (result.data ?? []) as any[];
 
-      return list.map((s: any) => {
-        const kingdom = String(s.taxonomy?.kingdom ?? "").toLowerCase();
+      const mapped = list.map((s: any) => {
+        const k = String(s.taxonomy?.kingdom ?? "").toLowerCase();
         return {
           id: Number(s.id),
-          name: s.name ?? s.commonName ?? "",
+          name: s.commonName ?? s.scientificName ?? "Sin nombre",
           scientificName: s.scientificName ?? "",
-          status: s.iucnStatus ?? s.status ?? "",
+          status: s.iucnStatus ?? "",
           habitat: s.habitat ?? "",
           taxonomyId: Number(s.taxonomyId),
           region: Array.isArray(s.regions)
-            ? s.regions.join(", ")
-            : s.region || "",
+            ? s.regions.map((r: any) => r.name).join(", ")
+            : "",
           population:
-            s.latestCensus?.population !== undefined &&
-            s.latestCensus?.population !== null
+            s.latestCensus?.population != null
               ? String(s.latestCensus.population)
               : "",
           imageUrl:
             Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
-          category: kingdomMap[kingdom] ?? "animal",
+          category: kingdomMap[k] ?? "animal",
           _raw: s,
         };
       });
+
+      return {
+        data: mapped,
+        total: result.meta?.total ?? mapped.length,
+      };
     } catch (error) {
       console.error(error);
-      return [];
+      return { data: [], total: 0 };
     }
   },
 

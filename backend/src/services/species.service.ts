@@ -13,6 +13,19 @@ import { CreateSpeciesDTO, UpdateSpeciesDTO } from "../DTO/species.input.dto";
 import { SpeciesQuery } from "../schemas/species.schema";
 import { NotFoundError } from "../errors/http.error";
 
+const HABITAT_KEYWORDS: Record<string, string[]> = {
+  bosque: ["Forest"],
+  marino: ["Marine", "Ocean", "Sea Cliffs", "Mangrove"],
+  desierto: ["Desert"],
+  montaña: ["Rocky areas", "Alpine", "Montane"],
+  tropical: ["Tropical", "Subtropical"],
+  templado: ["Temperate", "Mediterranean"],
+  desertico: ["Desert", "arid"],
+  acuatico: ["Wetlands", "Freshwater", "River", "Stream", "Lake"],
+  pradera: ["Grassland", "Savanna"],
+  humedo: ["Swamp", "Marsh", "Moist", "Humid"],
+};
+
 export class SpeciesService {
   private speciesRepo = AppDataSource.getRepository(Species);
   private regionRepo = AppDataSource.getRepository(Region);
@@ -36,41 +49,85 @@ export class SpeciesService {
   async getAll(query: SpeciesQuery) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
 
-    const qb = this.speciesRepo
+    // ── Paso 1: IDs filtrados (query liviana) ──────────────────────────────
+    const idQb = this.speciesRepo
+      .createQueryBuilder("s")
+      .select("s.id", "id")
+      .innerJoin("s.taxonomy", "t")
+      .leftJoin("s.regions", "r");
+
+    if (query.taxonomy) {
+      idQb.andWhere("LOWER(t.kingdom) LIKE LOWER(:taxonomy)", {
+        taxonomy: `%${query.taxonomy}%`,
+      });
+    }
+    if (query.status) {
+      idQb.andWhere("s.iucnStatus = :status", {
+        status: query.status.toUpperCase(),
+      });
+    }
+    if (query.search) {
+      idQb.andWhere(
+        "(LOWER(s.scientificName) LIKE LOWER(:search) OR LOWER(s.commonName) LIKE LOWER(:search))",
+        { search: `%${query.search}%` },
+      );
+    }
+    if (query.region) {
+      idQb.andWhere("r.name = :region", { region: query.region });
+    }
+    if (query.habitat) {
+      const keywords = HABITAT_KEYWORDS[query.habitat] ?? [query.habitat];
+      const conditions = keywords
+        .map((_, i) => `LOWER(s.habitat) LIKE LOWER(:hk${i})`)
+        .join(" OR ");
+      const params = Object.fromEntries(
+        keywords.map((kw, i) => [`hk${i}`, `%${kw}%`]),
+      );
+      idQb.andWhere(`s.habitat IS NOT NULL AND (${conditions})`, params);
+    }
+
+    idQb.distinct(true);
+
+    const total = await idQb.getCount();
+    const idRows = await idQb
+      .orderBy("s.id", "DESC")
+      .limit(limit)
+      .offset(offset)
+      .getRawMany();
+
+    if (idRows.length === 0) {
+      return { data: [], meta: { total, page, limit, totalPages: 0 } };
+    }
+
+    const ids: number[] = idRows.map((r) => Number(r.id));
+
+    // ── Paso 2: datos completos para esos IDs (PK lookup) ──────────────────
+    const data = await this.speciesRepo
       .createQueryBuilder("species")
       .leftJoinAndSelect("species.regions", "regions")
       .leftJoinAndSelect("species.taxonomy", "taxonomy")
       .leftJoinAndSelect("species.media", "media")
       .leftJoinAndSelect("species.populationCensus", "populationCensus")
-      .leftJoinAndSelect("populationCensus.source", "censusSource");
+      .leftJoinAndSelect("populationCensus.source", "censusSource")
+      .where("species.id IN (:...ids)", { ids })
+      .orderBy("species.id", "DESC")
+      .getMany();
 
-    if (query.region) {
-      qb.andWhere("LOWER(regions.name) LIKE LOWER(:region)", {
-        region: `%${query.region}%`,
-      });
-    }
-
-    if (query.taxonomy) {
-      qb.andWhere("LOWER(taxonomy.kingdom) LIKE LOWER(:taxonomy)", {
-        taxonomy: `%${query.taxonomy}%`,
-      });
-    }
-
-    qb.orderBy("species.id", "DESC");
-
-    qb.skip((page - 1) * limit).take(limit);
-
-    const [data, total] = await qb.getManyAndCount();
+    // ── Paso 3: latestCensus calculado ─────────────────────────────────────
+    const enriched = data.map((s) => ({
+      ...s,
+      latestCensus: s.populationCensus?.length
+        ? s.populationCensus.reduce((a, b) =>
+            new Date(b.censusDate) > new Date(a.censusDate) ? b : a,
+          )
+        : null,
+    }));
 
     return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: enriched,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
 

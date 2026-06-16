@@ -9,6 +9,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from "typeorm";
 import { Taxonomy } from "./taxonomy.entity";
 import { PopulationCensus } from "./population-census.entity";
@@ -22,11 +23,11 @@ export class Species {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
+  @Index("idx_scientific_name", { unique: true })
   @Column({
     name: "scientific_name",
     type: "varchar",
     length: 255,
-    unique: true,
   })
   scientificName: string;
 
@@ -38,6 +39,7 @@ export class Species {
   })
   commonName: string | null;
 
+  @Index("idx_iucn_status")
   @Column({
     name: "iucn_status",
     type: "enum",
@@ -45,6 +47,7 @@ export class Species {
   })
   iucnStatus: string;
 
+  @Index("idx_taxonomy_id")
   @Column({
     name: "taxonomy_id",
     type: "int",

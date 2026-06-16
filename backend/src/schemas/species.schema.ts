@@ -6,8 +6,11 @@ export const speciesIdParamSchema = z.object({
 });
 
 export const speciesQuerySchema = z.object({
-  region: z.string().optional(),
   taxonomy: z.string().optional(),
+  status: z.string().optional(),
+  search: z.string().optional(),
+  region: z.string().optional(),
+  habitat: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().optional(),
 });

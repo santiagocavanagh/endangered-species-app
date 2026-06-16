@@ -104,7 +104,7 @@ export function SpeciesModal({
     } else {
       setFormData({ ...initialForm, category: activeCategory });
       setSelectedRegions([]);
-      setSelectedTaxonomy(null); // ← limpiar también taxonomía
+      setSelectedTaxonomy(null); // ← limpiar taxonomía
     }
     setRegionSearch("");
     setTaxonomySearch(""); // ← limpiar búsqueda
