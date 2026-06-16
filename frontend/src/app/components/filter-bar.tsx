@@ -33,25 +33,34 @@ export function FilterBar({
   >([{ value: "all", label: "Todas las regiones" }]);
 
   useEffect(() => {
-    api.getRegions().then((res: any) => {
-      interface Region {
-        type: string;
-        name: string;
-      }
-      const data: Region[] = Array.isArray(res)
-        ? res
-        : res.data && Array.isArray(res.data)
-          ? res.data
-          : [];
-      const continents = data
-        .filter((r: Region) => r.type === "continent" || r.type === "subregion")
-        .map((r: Region) => ({ value: r.name, label: r.name }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-      setRegionOptions([
-        { value: "all", label: "Todas las regiones" },
-        ...continents,
-      ]);
-    });
+    api
+      .getRegions()
+      .then((res: any) => {
+        interface Region {
+          type: string;
+          name: string;
+        }
+        const data: Region[] = Array.isArray(res)
+          ? res
+          : res.data && Array.isArray(res.data)
+            ? res.data
+            : [];
+        const uniqueRegions = Array.from(
+          new Map(
+            data.map((r: Region) => [
+              r.name.toLowerCase(),
+              { value: r.name, label: r.name },
+            ]),
+          ).values(),
+        ).sort((a, b) => a.label.localeCompare(b.label));
+        setRegionOptions([
+          { value: "all", label: "Todas las regiones" },
+          ...uniqueRegions,
+        ]);
+      })
+      .catch((error) => {
+        console.error("Error cargando regiones:", error);
+      });
   }, []);
 
   const statusOptions = [

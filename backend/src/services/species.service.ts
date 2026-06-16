@@ -75,7 +75,9 @@ export class SpeciesService {
       );
     }
     if (query.region) {
-      idQb.andWhere("r.name = :region", { region: query.region });
+      idQb.andWhere("LOWER(r.name) = LOWER(:region)", {
+        region: query.region,
+      });
     }
     if (query.habitat) {
       const keywords = HABITAT_KEYWORDS[query.habitat] ?? [query.habitat];

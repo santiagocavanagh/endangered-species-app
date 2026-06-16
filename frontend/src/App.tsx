@@ -3,6 +3,7 @@ import { api } from "./services/api";
 import { useAuth } from "./context/auth-context";
 import { Header } from "./app/components/header";
 import { FilterBar, Filters } from "./app/components/filter-bar";
+import { FavoritesView } from "./app/components/fav-view";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 import { SpeciesModal } from "./app/components/species-modal";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
@@ -17,6 +18,7 @@ export default function App() {
     "animal" | "planta" | "hongo"
   >("animal");
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [favoriteSpecies, setFavoriteSpecies] = useState<Species[]>([]);
   const [view, setView] = useState<"all" | "favorites">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speciesToEdit, setSpeciesToEdit] = useState<Species | null>(null);
@@ -69,6 +71,9 @@ export default function App() {
 
       if (!favsData.error && Array.isArray(favsData)) {
         setFavorites(new Set(favsData.map((f: any) => Number(f.id))));
+        setFavoriteSpecies(favsData as Species[]);
+      } else {
+        setFavoriteSpecies([]);
       }
     } catch (e) {
       console.error(e);
@@ -145,12 +150,13 @@ export default function App() {
 
   // Vista favoritos o explorar
   const displaySpecies = useMemo(() => {
-    const base =
-      view === "favorites"
-        ? allSpecies.filter((s) => favorites.has(s.id))
-        : allSpecies;
-    return base.filter((s) => s.category === activeCategory);
-  }, [allSpecies, favorites, view, activeCategory]);
+    return allSpecies.filter((s) => s.category === activeCategory);
+  }, [allSpecies, activeCategory]);
+
+  const favoriteSpeciesByCategory = useMemo(
+    () => favoriteSpecies.filter((s) => s.category === activeCategory),
+    [favoriteSpecies, activeCategory],
+  );
 
   const handleCategoryChange = (cat: "animal" | "planta" | "hongo") => {
     setActiveCategory(cat);
@@ -195,11 +201,18 @@ export default function App() {
           next.delete(id);
           return next;
         });
+        setFavoriteSpecies((prev) =>
+          prev.filter((species) => species.id !== id),
+        );
       }
     } else {
       const res = await api.addFavorite(id);
       if (!res.error) {
         setFavorites((prev) => new Set(prev).add(id));
+        const addedSpecies = allSpecies.find((species) => species.id === id);
+        if (addedSpecies) {
+          setFavoriteSpecies((prev) => [...prev, addedSpecies]);
+        }
       }
     }
   };
@@ -239,10 +252,11 @@ export default function App() {
               </button>
             </div>
 
-            {/* Contador */}
             {!isLoading && (
               <span className="text-sm text-gray-500">
-                {displaySpecies.length} de {total} especies
+                {view === "favorites"
+                  ? `${favoriteSpeciesByCategory.length} favoritos`
+                  : `${displaySpecies.length} de ${total} especies`}
               </span>
             )}
 
@@ -269,17 +283,36 @@ export default function App() {
           )}
 
           {/* Grilla de especies */}
-          {!isLoading && displaySpecies.length === 0 && (
+          {!isLoading &&
+            view === "favorites" &&
+            favoriteSpeciesByCategory.length === 0 && (
+              <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+                <p className="text-gray-400 text-xl font-light">
+                  No tenés favoritos en esta categoría.
+                </p>
+              </div>
+            )}
+
+          {!isLoading && view === "all" && displaySpecies.length === 0 && (
             <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
               <p className="text-gray-400 text-xl font-light">
-                {view === "favorites"
-                  ? "No tenés favoritos en esta categoría."
-                  : "No se encontraron especies con estos filtros."}
+                No se encontraron especies con estos filtros.
               </p>
             </div>
           )}
 
-          {!isLoading && displaySpecies.length > 0 && (
+          {!isLoading &&
+            view === "favorites" &&
+            favoriteSpeciesByCategory.length > 0 && (
+              <FavoritesView
+                favorites={favoriteSpeciesByCategory}
+                onToggleFavorite={toggleFavorite}
+                onEdit={handleOpenEdit}
+                onDelete={handleDelete}
+              />
+            )}
+
+          {!isLoading && view === "all" && displaySpecies.length > 0 && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displaySpecies.map((s) => (
