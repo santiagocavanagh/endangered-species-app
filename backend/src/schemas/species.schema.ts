@@ -37,12 +37,7 @@ export const createSpeciesSchema = z
   })
   .strict();
 
-export const updateSpeciesSchema = createSpeciesSchema
-  .partial()
-  .refine((data) => !(data.population !== undefined && !data.censusDate), {
-    message: "Censo obligatorio si población está presente",
-    path: ["censusDate"],
-  });
+export const updateSpeciesSchema = createSpeciesSchema.partial();
 
 export type SpeciesIdParams = z.infer<typeof speciesIdParamSchema>;
 export type SpeciesQuery = z.infer<typeof speciesQuerySchema>;

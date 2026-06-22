@@ -44,12 +44,37 @@ function getEnvEnum<T extends string>(name: string, allowed: readonly T[]): T {
   return value as T;
 }
 
+function getEnvUrl(name: string, requiredInProduction = false): string | null {
+  const value = process.env[name];
+
+  if (!value) {
+    if (requiredInProduction) {
+      throw new Error(`La variable ${name} es obligatoria en producción`);
+    }
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error();
+    }
+    return url.origin;
+  } catch {
+    throw new Error(
+      `La variable ${name} debe ser una URL válida (http:// o https://)`,
+    );
+  }
+}
+
+const NODE_ENV = getEnvEnum("NODE_ENV", ["development", "production"] as const);
+
 export const ENV = {
   PORT: process.env["PORT"] ? getEnvNumber("PORT") : 3000,
 
-  NODE_ENV: getEnvEnum("NODE_ENV", ["development", "production"] as const),
+  NODE_ENV,
 
-  FRONTEND_URL: process.env["FRONTEND_URL"] ?? null,
+  FRONTEND_URL: getEnvUrl("FRONTEND_URL", NODE_ENV === "production"),
 
   JWT_SECRET: getEnv("JWT_SECRET"),
   JWT_EXPIRATION: getEnv("JWT_EXPIRATION"),
@@ -65,6 +90,6 @@ export const ENV = {
     NAME: getEnv("DB_NAME"),
   },
 
-  IUCN_API_TOKEN: process.env["IUCN_API_TOKEN"] ?? null,
+  IUCN_TOKEN: process.env["IUCN_API_TOKEN"] ?? null,
   IUCN_API_BASE: "https://api.iucnredlist.org/api/v4",
 } as const;

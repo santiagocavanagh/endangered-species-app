@@ -11,10 +11,38 @@ const getAuthHeaders = (): Record<string, string> => {
   return headers;
 };
 
+const parseApiResponse = async (response: Response) => {
+  const body = await response.json().catch(() => null);
+  if (response.ok) {
+    return body;
+  }
+  const message = body?.error ?? body?.message ?? "Error en el servidor";
+  return {
+    error: typeof message === "string" ? message : JSON.stringify(message),
+  };
+};
+
 const categoryToKingdom: Record<string, string> = {
   animal: "animalia",
   planta: "plantae",
   hongo: "fungi",
+};
+
+const parsePopulationValue = (raw: unknown): number | undefined => {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  const text = String(raw).trim();
+  const matches = text.match(/\d[\d,.]*/g);
+  if (!matches || matches.length === 0) {
+    return undefined;
+  }
+
+  const chosen = matches[matches.length - 1];
+  const normalized = chosen.replace(/[^0-9]/g, "");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
 };
 
 const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
@@ -126,15 +154,10 @@ export const api = {
 
       if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
-      if (data.population) {
-        const parsed = parseInt(
-          String(data.population).replace(/[^0-9]/g, ""),
-          10,
-        );
-        if (!isNaN(parsed)) {
-          payload.population = parsed;
-          payload.censusDate = new Date().toISOString().split("T")[0];
-        }
+      const population = parsePopulationValue(data.population);
+      if (population !== undefined) {
+        payload.population = population;
+        payload.censusDate = new Date().toISOString().split("T")[0];
       }
 
       const res = await fetch(`${API_URL}/species`, {
@@ -142,7 +165,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      return await parseApiResponse(res);
     } catch (error) {
       console.error(error);
       return { error: "No se pudo crear" };
@@ -190,15 +213,10 @@ export const api = {
 
       if (data.imageUrl) payload.imageUrl = data.imageUrl;
 
-      if (data.population) {
-        const parsed = parseInt(
-          String(data.population).replace(/[^0-9]/g, ""),
-          10,
-        );
-        if (!isNaN(parsed)) {
-          payload.population = parsed;
-          payload.censusDate = new Date().toISOString().split("T")[0];
-        }
+      const population = parsePopulationValue(data.population);
+      if (population !== undefined) {
+        payload.population = population;
+        payload.censusDate = new Date().toISOString().split("T")[0];
       }
 
       const res = await fetch(`${API_URL}/species/${id}`, {
@@ -206,7 +224,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      return await parseApiResponse(res);
     } catch (error) {
       console.error(error);
       return { error: "No se pudo actualizar" };
@@ -220,7 +238,7 @@ export const api = {
         headers: getAuthHeaders(),
       });
       if (res.status === 204) return { success: true };
-      return await res.json();
+      return await parseApiResponse(res);
     } catch (error) {
       return { error: "No se pudo eliminar" };
     }

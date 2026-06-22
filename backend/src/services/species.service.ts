@@ -14,16 +14,54 @@ import { SpeciesQuery } from "../schemas/species.schema";
 import { NotFoundError } from "../errors/http.error";
 
 const HABITAT_KEYWORDS: Record<string, string[]> = {
-  bosque: ["Forest"],
-  marino: ["Marine", "Ocean", "Sea Cliffs", "Mangrove"],
-  desierto: ["Desert"],
-  montaña: ["Rocky areas", "Alpine", "Montane"],
-  tropical: ["Tropical", "Subtropical"],
-  templado: ["Temperate", "Mediterranean"],
-  desertico: ["Desert", "arid"],
-  acuatico: ["Wetlands", "Freshwater", "River", "Stream", "Lake"],
-  pradera: ["Grassland", "Savanna"],
-  humedo: ["Swamp", "Marsh", "Moist", "Humid"],
+  bosque: [
+    "forest",
+    "bosque",
+    "woodland",
+    "tropical moist",
+    "temperate forest",
+  ],
+  marino: [
+    "marine",
+    "oceanic",
+    "ocean",
+    "sea",
+    "coastal",
+    "neritic",
+    "intertidal",
+    "coral",
+  ],
+  desierto: ["desert", "arid", "xeric", "dry"],
+  montaña: ["rocky", "alpine", "montane", "mountain", "hill", "slope"],
+  tropical: ["tropical", "subtropical"],
+  templado: ["temperate", "temperado", "mediterranean"],
+  desertico: ["desert", "arid", "xeric", "dry"],
+  acuatico: [
+    "wetlands",
+    "freshwater",
+    "river",
+    "stream",
+    "lake",
+    "pond",
+    "marsh",
+    "swamp",
+    "bog",
+    "aquatic",
+  ],
+  pradera: ["grassland", "savanna", "prairie", "steppe", "meadow"],
+  humedo: ["swamp", "marsh", "humid", "moist", "bog", "peatland"],
+  artificial: [
+    "artificial",
+    "plantations",
+    "pastureland",
+    "arable",
+    "gardens",
+    "urban",
+    "aquaculture",
+    "canals",
+    "excavations",
+  ],
+  unknown: ["unknown", "other"],
 };
 
 export class SpeciesService {
@@ -51,7 +89,7 @@ export class SpeciesService {
     const limit = query.limit ?? 10;
     const offset = (page - 1) * limit;
 
-    // ── Paso 1: IDs filtrados (query liviana) ──────────────────────────────
+    //1) IDs filtrados
     const idQb = this.speciesRepo
       .createQueryBuilder("s")
       .select("s.id", "id")
@@ -105,7 +143,7 @@ export class SpeciesService {
 
     const ids: number[] = idRows.map((r) => Number(r.id));
 
-    // ── Paso 2: datos completos para esos IDs (PK lookup) ──────────────────
+    //2) datos completos para esos IDs (PK lookup)
     const data = await this.speciesRepo
       .createQueryBuilder("species")
       .leftJoinAndSelect("species.regions", "regions")
@@ -117,7 +155,7 @@ export class SpeciesService {
       .orderBy("species.id", "DESC")
       .getMany();
 
-    // ── Paso 3: latestCensus calculado ─────────────────────────────────────
+    //3) latestCensus calculado
     const enriched = data.map((s) => ({
       ...s,
       latestCensus: s.populationCensus?.length
@@ -316,12 +354,29 @@ export class SpeciesService {
     data: CreateSpeciesDTO | UpdateSpeciesDTO,
   ) {
     const censusRepo = manager.getRepository(PopulationCensus);
-
     const source = await this.resolveSource(manager, data.sourceId);
+    const censusDate = data.censusDate ?? new Date();
+
+    const existingCensus = await censusRepo
+      .createQueryBuilder("census")
+      .leftJoin("census.species", "species")
+      .where("species.id = :speciesId", { speciesId: species.id })
+      .andWhere("census.censusDate = :censusDate", {
+        censusDate: censusDate.toISOString().slice(0, 10),
+      })
+      .getOne();
+
+    if (existingCensus) {
+      existingCensus.population = data.population!;
+      existingCensus.source = source;
+      existingCensus.notes = data.notes ?? null;
+      await censusRepo.save(existingCensus);
+      return;
+    }
 
     await censusRepo.save({
       species,
-      censusDate: data.censusDate ?? new Date(),
+      censusDate,
       population: data.population!,
       source,
       notes: data.notes ?? null,

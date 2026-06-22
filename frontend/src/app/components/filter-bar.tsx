@@ -73,29 +73,21 @@ export function FilterBar({
     { value: "LC", label: "Preocupación Menor" },
   ];
 
-  const habitatOptions = {
-    animal: [
-      { value: "all", label: "Todos los hábitats" },
-      { value: "bosque", label: "Bosque" },
-      { value: "marino", label: "Marino" },
-      { value: "desierto", label: "Desierto" },
-      { value: "montaña", label: "Montaña" },
-    ],
-    planta: [
-      { value: "all", label: "Todos los hábitats" },
-      { value: "tropical", label: "Tropical" },
-      { value: "templado", label: "Templado" },
-      { value: "desertico", label: "Desértico" },
-      { value: "acuatico", label: "Acuático" },
-    ],
-    hongo: [
-      { value: "all", label: "Todos los hábitats" },
-      { value: "bosque", label: "Bosque" },
-      { value: "pradera", label: "Pradera" },
-      { value: "humedo", label: "Húmedo" },
-      { value: "montaña", label: "Montaña" },
-    ],
-  };
+  const habitatOptions = [
+    { value: "all", label: "Todos los hábitats" },
+    { value: "bosque", label: "Bosque" },
+    { value: "marino", label: "Marino" },
+    { value: "desierto", label: "Desierto" },
+    { value: "montaña", label: "Montaña" },
+    { value: "tropical", label: "Tropical" },
+    { value: "templado", label: "Templado" },
+    { value: "desertico", label: "Desértico" },
+    { value: "acuatico", label: "Acuático" },
+    { value: "pradera", label: "Pradera" },
+    { value: "humedo", label: "Húmedo" },
+    { value: "artificial", label: "Artificial" },
+    { value: "unknown", label: "Otros / Desconocido" },
+  ];
 
   return (
     <div className="w-full bg-gray-50 border-b px-6 py-4">
@@ -138,7 +130,7 @@ export function FilterBar({
                 <SelectValue placeholder="Hábitat" />
               </SelectTrigger>
               <SelectContent>
-                {habitatOptions[category].map((option) => (
+                {habitatOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
