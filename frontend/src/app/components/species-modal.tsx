@@ -271,12 +271,17 @@ export function SpeciesModal({
               <Label htmlFor="population">Población Estimada</Label>
               <input
                 id="population"
+                placeholder="Ej: 4500 ~ 8500, ~ 4,200, 10,450 / 7,500"
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 value={formData.population}
                 onChange={(e) =>
                   setFormData({ ...formData, population: e.target.value })
                 }
               />
+              <p className="text-xs text-gray-500">
+                Acepta números con comas y estimados con “~”, “/” o “~” entre
+                valores.
+              </p>
             </div>
           </div>
           {/* ── Selector de Taxonomía ── */}

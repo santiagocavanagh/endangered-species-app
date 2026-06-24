@@ -12,7 +12,7 @@ import { toast, Toaster } from "sonner";
 const LIMIT = 50;
 
 export default function App() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [activeCategory, setActiveCategory] = useState<
     "animal" | "planta" | "hongo"
@@ -47,13 +47,13 @@ export default function App() {
   };
 
   // Carga inicial y reset
-  const resetAndLoad = useCallback(async (f: Filters, cat: string) => {
-    setIsLoading(true);
-    setPage(1);
-    setAllSpecies([]);
-    try {
-      const [result, favsData] = await Promise.all([
-        api.fetchSpecies({
+  const resetAndLoad = useCallback(
+    async (f: Filters, cat: string) => {
+      setIsLoading(true);
+      setPage(1);
+      setAllSpecies([]);
+      try {
+        const speciesPromise = api.fetchSpecies({
           kingdom: categoryToKingdom[cat],
           status: f.status !== "all" ? f.status : undefined,
           search: f.search.trim() || undefined,
@@ -61,26 +61,38 @@ export default function App() {
           habitat: f.habitat !== "all" ? f.habitat : undefined,
           page: 1,
           limit: LIMIT,
-        }),
-        api.getFavorites(),
-      ]);
+        });
 
-      setAllSpecies(result.data);
-      setTotal(result.total);
-      setHasMore(result.data.length === LIMIT && result.total > LIMIT);
+        const favoritesPromise = user
+          ? api.getFavorites()
+          : Promise.resolve([]);
 
-      if (!favsData.error && Array.isArray(favsData)) {
-        setFavorites(new Set(favsData.map((f: any) => Number(f.id))));
-        setFavoriteSpecies(favsData as Species[]);
-      } else {
+        const [result, favsData] = await Promise.all([
+          speciesPromise,
+          favoritesPromise,
+        ]);
+
+        setAllSpecies(result.data);
+        setTotal(result.total);
+        setHasMore(result.data.length === LIMIT && result.total > LIMIT);
+
+        if (user && !favsData.error && Array.isArray(favsData)) {
+          setFavorites(new Set(favsData.map((f: any) => Number(f.id))));
+          setFavoriteSpecies(favsData as Species[]);
+        } else {
+          setFavorites(new Set());
+          setFavoriteSpecies([]);
+        }
+      } catch (e) {
+        console.error(e);
+        setFavorites(new Set());
         setFavoriteSpecies([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [user],
+  );
 
   // Infinite scroll
   const loadMore = useCallback(async () => {
@@ -128,25 +140,25 @@ export default function App() {
     return () => observer.disconnect();
   }, [loadMore]);
 
-  // Filtros inmediatos (status, region, habitat, categoría)
+  const hasLoadedOnce = useRef(false);
+
   useEffect(() => {
-    resetAndLoad(filters, activeCategory);
+    clearTimeout(searchTimer.current);
+    const delay = hasLoadedOnce.current ? 400 : 0;
+    searchTimer.current = setTimeout(() => {
+      resetAndLoad(filters, activeCategory);
+      hasLoadedOnce.current = true;
+    }, delay);
+    return () => clearTimeout(searchTimer.current);
   }, [
+    filters.search,
     filters.status,
     filters.region,
     filters.habitat,
     activeCategory,
     resetAndLoad,
+    user,
   ]);
-
-  // Debounce 400ms
-  useEffect(() => {
-    clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      resetAndLoad(filters, activeCategory);
-    }, 400);
-    return () => clearTimeout(searchTimer.current);
-  }, [filters.search]);
 
   // Vista favoritos o explorar
   const displaySpecies = useMemo(() => {

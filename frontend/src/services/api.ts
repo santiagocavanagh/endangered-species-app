@@ -1,3 +1,5 @@
+import type { Species } from "../app/components/species-card";
+
 const API_URL = "http://localhost:3000/api";
 
 const getAuthHeaders = (): Record<string, string> => {
@@ -39,10 +41,45 @@ const parsePopulationValue = (raw: unknown): number | undefined => {
     return undefined;
   }
 
-  const chosen = matches[matches.length - 1];
-  const normalized = chosen.replace(/[^0-9]/g, "");
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  const numbers = matches
+    .map((match) => Number(match.replace(/[^0-9]/g, "")))
+    .filter(Number.isFinite);
+  if (numbers.length === 0) {
+    return undefined;
+  }
+
+  if (numbers.length === 1) {
+    return numbers[0];
+  }
+
+  const hasRange = /[~\/\-]/.test(text);
+  if (hasRange) {
+    const min = Math.min(...numbers);
+    const max = Math.max(...numbers);
+    return Math.round((min + max) / 2);
+  }
+
+  return numbers[numbers.length - 1];
+};
+
+const mapSpeciesToClient = (s: any): Species => {
+  const k = String(s.taxonomy?.kingdom ?? "").toLowerCase();
+  return {
+    id: Number(s.id),
+    name: s.commonName ?? s.scientificName ?? "Sin nombre",
+    scientificName: s.scientificName ?? "",
+    status: String(s.iucnStatus ?? ""),
+    habitat: s.habitat ?? "",
+    region: Array.isArray(s.regions) ? s.regions.join(", ") : "",
+    population:
+      s.latestCensus?.population != null
+        ? String(s.latestCensus.population)
+        : "",
+    imageUrl:
+      Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
+    taxonomyId: Number(s.taxonomyId ?? 0),
+    category: kingdomMap[k] ?? "animal",
+  };
 };
 
 const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
@@ -80,28 +117,7 @@ export const api = {
       const result = await response.json();
       const list = (result.data ?? []) as any[];
 
-      const mapped = list.map((s: any) => {
-        const k = String(s.taxonomy?.kingdom ?? "").toLowerCase();
-        return {
-          id: Number(s.id),
-          name: s.commonName ?? s.scientificName ?? "Sin nombre",
-          scientificName: s.scientificName ?? "",
-          status: s.iucnStatus ?? "",
-          habitat: s.habitat ?? "",
-          taxonomyId: Number(s.taxonomyId),
-          region: Array.isArray(s.regions)
-            ? s.regions.map((r: any) => r.name).join(", ")
-            : "",
-          population:
-            s.latestCensus?.population != null
-              ? String(s.latestCensus.population)
-              : "",
-          imageUrl:
-            Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
-          category: kingdomMap[k] ?? "animal",
-          _raw: s,
-        };
-      });
+      const mapped = list.map(mapSpeciesToClient);
 
       return {
         data: mapped,
@@ -317,8 +333,16 @@ export const api = {
       const res = await fetch(`${API_URL}/favorites`, {
         headers: getAuthHeaders(),
       });
-      return await res.json();
+      const data = await res.json();
+      if (!res.ok) {
+        return { error: data?.error ?? "No se pudieron cargar favoritos" };
+      }
+      if (!Array.isArray(data)) {
+        return { error: "Respuesta de favoritos inválida" };
+      }
+      return data.map(mapSpeciesToClient);
     } catch (error) {
+      console.error(error);
       return { error: "No se pudieron cargar favoritos" };
     }
   },
