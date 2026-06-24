@@ -4,6 +4,8 @@ import { ENV } from "./env.config";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
+  timezone: "Z",
+  dateStrings: true,
   host: ENV.DB.HOST,
   port: ENV.DB.PORT,
   username: ENV.DB.USER,

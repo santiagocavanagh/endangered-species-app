@@ -348,6 +348,7 @@ export class SpeciesService {
     ];
   }
 
+  // Insertar/Guardar Poblacion
   private async createPopulationCensus(
     manager: EntityManager,
     species: Species,
@@ -355,15 +356,14 @@ export class SpeciesService {
   ) {
     const censusRepo = manager.getRepository(PopulationCensus);
     const source = await this.resolveSource(manager, data.sourceId);
-    const censusDate = data.censusDate ?? new Date();
+    const censusDate =
+      data.censusDate ?? new Date().toISOString().split("T")[0];
 
     const existingCensus = await censusRepo
       .createQueryBuilder("census")
       .leftJoin("census.species", "species")
       .where("species.id = :speciesId", { speciesId: species.id })
-      .andWhere("census.censusDate = :censusDate", {
-        censusDate: censusDate.toISOString().slice(0, 10),
-      })
+      .andWhere("census.censusDate = :censusDate", { censusDate })
       .getOne();
 
     if (existingCensus) {

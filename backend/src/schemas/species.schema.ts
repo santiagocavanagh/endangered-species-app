@@ -30,7 +30,10 @@ export const createSpeciesSchema = z
       .positive()
       .max(1_000_000_000_000)
       .optional(),
-    censusDate: z.coerce.date().optional(),
+    censusDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
     sourceId: z.coerce.number().int().positive().optional(),
     notes: z.string().optional(),
     imageUrl: z.string().url().optional(),
