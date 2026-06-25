@@ -30,6 +30,7 @@ export const createSpeciesSchema = z
       .positive()
       .max(1_000_000_000_000)
       .optional(),
+    populationDisplay: z.string().optional(),
     censusDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)

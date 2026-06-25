@@ -20,6 +20,16 @@ import {
 export class AuthService {
   private userRepo = AppDataSource.getRepository(User);
 
+  private toUnixSeconds(value: Date | string | null | undefined): number {
+    if (!value) {
+      return 0;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    const time = date.getTime();
+    return Number.isFinite(time) ? Math.floor(time / 1000) : 0;
+  }
+
   //Register
   async register(data: RegisterBody) {
     const { email, password, name } = data;
@@ -97,9 +107,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      passwordChangedAt: user.passwordChangedAt
-        ? Math.floor(user.passwordChangedAt.getTime() / 1000)
-        : 0,
+      passwordChangedAt: this.toUnixSeconds(user.passwordChangedAt),
     };
 
     const options: SignOptions = {

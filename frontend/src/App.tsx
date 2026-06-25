@@ -11,6 +11,33 @@ import { toast, Toaster } from "sonner";
 
 const LIMIT = 50;
 
+const kingdomMap: Record<string, "animal" | "planta" | "hongo"> = {
+  animalia: "animal",
+  plantae: "planta",
+  fungi: "hongo",
+};
+
+const mapApiSpeciesToCard = (s: any): Species => {
+  const kingdom = String(s.taxonomy?.kingdom ?? "").toLowerCase();
+
+  return {
+    id: Number(s.id),
+    name: s.commonName ?? s.scientificName ?? "Sin nombre",
+    scientificName: s.scientificName ?? "",
+    status: String(s.iucnStatus ?? ""),
+    habitat: s.habitat ?? "",
+    region: Array.isArray(s.regions) ? s.regions.join(", ") : "",
+    population:
+      s.latestCensus?.population != null
+        ? String(s.latestCensus.population)
+        : "",
+    imageUrl:
+      Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
+    taxonomyId: Number(s.taxonomyId ?? 0),
+    category: kingdomMap[kingdom] ?? "animal",
+  };
+};
+
 export default function App() {
   const { isAdmin, user } = useAuth();
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
@@ -184,6 +211,29 @@ export default function App() {
   const handleOpenEdit = (species: Species) => {
     setSpeciesToEdit(species);
     setIsModalOpen(true);
+  };
+
+  const syncUpdatedSpecies = (updatedSpecies: any) => {
+    if (!updatedSpecies?.id) {
+      resetAndLoad(filters, activeCategory);
+      return;
+    }
+
+    const mappedSpecies = mapApiSpeciesToCard(updatedSpecies);
+
+    setAllSpecies((current) =>
+      current.map((species) =>
+        species.id === mappedSpecies.id ? mappedSpecies : species,
+      ),
+    );
+
+    setFavoriteSpecies((current) =>
+      current.map((species) =>
+        species.id === mappedSpecies.id ? mappedSpecies : species,
+      ),
+    );
+
+    resetAndLoad(filters, activeCategory);
   };
 
   const handleDelete = (id: number) => {
@@ -363,7 +413,7 @@ export default function App() {
       <SpeciesModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => resetAndLoad(filters, activeCategory)}
+        onSuccess={syncUpdatedSpecies}
         speciesToEdit={speciesToEdit}
         activeCategory={activeCategory}
       />

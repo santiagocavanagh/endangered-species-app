@@ -28,6 +28,13 @@ export class PopulationCensus {
   @Column({ type: "bigint" })
   population: number;
 
+  @Column({
+    name: "population_display",
+    type: "text",
+    nullable: true,
+  })
+  populationDisplay: string | null;
+
   @ManyToOne(() => DataSource, {
     onDelete: "RESTRICT",
   })

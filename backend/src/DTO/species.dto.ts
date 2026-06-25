@@ -9,6 +9,7 @@ export interface TaxonomyDTO {
 
 export interface CensusDTO {
   population: number;
+  populationDisplay?: string | null;
   date: string;
   source?: {
     id: number;

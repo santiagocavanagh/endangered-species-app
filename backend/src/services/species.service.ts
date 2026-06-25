@@ -368,6 +368,7 @@ export class SpeciesService {
 
     if (existingCensus) {
       existingCensus.population = data.population!;
+      existingCensus.populationDisplay = data.populationDisplay ?? null;
       existingCensus.source = source;
       existingCensus.notes = data.notes ?? null;
       await censusRepo.save(existingCensus);
@@ -378,6 +379,7 @@ export class SpeciesService {
       species,
       censusDate,
       population: data.population!,
+      populationDisplay: data.populationDisplay ?? null,
       source,
       notes: data.notes ?? null,
     });

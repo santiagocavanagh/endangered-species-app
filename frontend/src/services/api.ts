@@ -36,30 +36,29 @@ const parsePopulationValue = (raw: unknown): number | undefined => {
   }
 
   const text = String(raw).trim();
-  const matches = text.match(/\d[\d,.]*/g);
-  if (!matches || matches.length === 0) {
+  if (!text) {
     return undefined;
   }
 
-  const numbers = matches
-    .map((match) => Number(match.replace(/[^0-9]/g, "")))
-    .filter(Number.isFinite);
+  const normalized = text.replace(/,/g, "").replace(/[^0-9~]/g, "~");
+  const parts = normalized.split("~").filter(Boolean);
+  const numbers = parts
+    .map((part) => Number(part))
+    .filter((value) => Number.isFinite(value));
+
   if (numbers.length === 0) {
     return undefined;
   }
 
-  if (numbers.length === 1) {
+  if (normalized.startsWith("~") && numbers.length === 1) {
     return numbers[0];
   }
 
-  const hasRange = /[~\/\-]/.test(text);
-  if (hasRange) {
-    const min = Math.min(...numbers);
-    const max = Math.max(...numbers);
-    return Math.round((min + max) / 2);
+  if (numbers.length >= 2) {
+    return Math.round((numbers[0] + numbers[1]) / 2);
   }
 
-  return numbers[numbers.length - 1];
+  return numbers[0];
 };
 
 const mapSpeciesToClient = (s: any): Species => {
@@ -169,6 +168,11 @@ export const api = {
       };
 
       if (data.imageUrl) payload.imageUrl = data.imageUrl;
+
+      const rawPopulation = String(data.population ?? "").trim();
+      if (rawPopulation) {
+        payload.populationDisplay = rawPopulation;
+      }
 
       const population = parsePopulationValue(data.population);
       if (population !== undefined) {

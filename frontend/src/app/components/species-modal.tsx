@@ -8,7 +8,7 @@ import { Species } from "./species-card";
 interface SpeciesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (updatedSpecies?: any) => void;
   speciesToEdit: Species | null;
   activeCategory: "animal" | "planta" | "hongo";
 }
@@ -163,7 +163,7 @@ export function SpeciesModal({
           ? "Especie actualizada correctamente"
           : "Especie creada correctamente",
       );
-      onSuccess();
+      onSuccess(res);
       onClose();
     }
   };
@@ -279,8 +279,8 @@ export function SpeciesModal({
                 }
               />
               <p className="text-xs text-gray-500">
-                Acepta números con comas y estimados con “~”, “/” o “~” entre
-                valores.
+                Usa números y el carácter “~”. Los separadores como “/”, “-” o
+                comas se normalizan al calcular el promedio.
               </p>
             </div>
           </div>

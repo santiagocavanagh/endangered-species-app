@@ -7,6 +7,16 @@ import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
 import { AppDataSource } from "../config/data.source";
 import { User } from "../entities/user.entity";
 
+function toUnixSeconds(value: Date | string | null | undefined): number {
+  if (!value) {
+    return 0;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  const time = date.getTime();
+  return Number.isFinite(time) ? Math.floor(time / 1000) : 0;
+}
+
 // Type guard
 function isTokenPayload(payload: unknown): payload is TokenPayload {
   return (
@@ -55,9 +65,7 @@ export const authenticateToken = async (
       throw new UnauthorizedError("Usuario no existe");
     }
 
-    const userPasswordChangedAt = user.passwordChangedAt
-      ? Math.floor(user.passwordChangedAt.getTime() / 1000)
-      : 0;
+    const userPasswordChangedAt = toUnixSeconds(user.passwordChangedAt);
 
     if (decoded.passwordChangedAt < userPasswordChangedAt) {
       throw new UnauthorizedError("Token expirado por cambio de contraseña");
