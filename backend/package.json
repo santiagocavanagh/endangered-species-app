@@ -7,8 +7,8 @@
     "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/index.js",
-    "seed": "ts-node ../scripts/seeds/seed.ts",
-    "validate-seed": "ts-node ../scripts/seeds/validate_iucn.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/scripts/iucn-seed.ts",
+    "validate-seed": "ts-node -r tsconfig-paths/register src/scripts/verify-with-iucn.ts"
   },
   "keywords": [],
   "author": "",
