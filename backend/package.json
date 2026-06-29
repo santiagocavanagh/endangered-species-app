@@ -9,7 +9,8 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "seed": "ts-node -r tsconfig-paths/register src/scripts/iucn-seed.ts",
     "validate-seed": "ts-node -r tsconfig-paths/register src/scripts/verify-with-iucn.ts",
-    "image-search": "ts-node -r tsconfig-paths/register src/scripts/image-search.ts"
+    "image-search": "ts-node -r tsconfig-paths/register src/scripts/image-search.ts",
+    "gbif-image-search": "ts-node -r tsconfig-paths/register src/scripts/gbif-image-search.ts"
   },
   "keywords": [],
   "author": "",
