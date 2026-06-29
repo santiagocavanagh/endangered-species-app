@@ -101,6 +101,21 @@ export class SpeciesService {
         taxonomy: `%${query.taxonomy}%`,
       });
     }
+    if (query.orderName) {
+      idQb.andWhere("LOWER(t.orderName) = LOWER(:orderName)", {
+        orderName: query.orderName,
+      });
+    }
+    if (query.family) {
+      idQb.andWhere("LOWER(t.family) = LOWER(:family)", {
+        family: query.family,
+      });
+    }
+    if (query.genus) {
+      idQb.andWhere("LOWER(t.genus) = LOWER(:genus)", {
+        genus: query.genus,
+      });
+    }
     if (query.status) {
       idQb.andWhere("s.iucnStatus = :status", {
         status: query.status.toUpperCase(),

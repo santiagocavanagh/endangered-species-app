@@ -59,6 +59,9 @@ export default function App() {
     status: "all",
     habitat: "all",
     region: "all",
+    orderName: "all",
+    family: "all",
+    genus: "all",
   });
 
   const sentinelRef = useRef<HTMLDivElement>(null); // div al final de la grilla
@@ -82,6 +85,9 @@ export default function App() {
       try {
         const speciesPromise = api.fetchSpecies({
           kingdom: categoryToKingdom[cat],
+          orderName: f.orderName !== "all" ? f.orderName : undefined,
+          family: f.family !== "all" ? f.family : undefined,
+          genus: f.genus !== "all" ? f.genus : undefined,
           status: f.status !== "all" ? f.status : undefined,
           search: f.search.trim() || undefined,
           region: f.region !== "all" ? f.region : undefined,
@@ -131,6 +137,9 @@ export default function App() {
     try {
       const result = await api.fetchSpecies({
         kingdom: categoryToKingdom[activeCategory],
+        orderName: filters.orderName !== "all" ? filters.orderName : undefined,
+        family: filters.family !== "all" ? filters.family : undefined,
+        genus: filters.genus !== "all" ? filters.genus : undefined,
         status: filters.status !== "all" ? filters.status : undefined,
         search: filters.search.trim() || undefined,
         region: filters.region !== "all" ? filters.region : undefined,
@@ -182,6 +191,9 @@ export default function App() {
     filters.status,
     filters.region,
     filters.habitat,
+    filters.orderName,
+    filters.family,
+    filters.genus,
     activeCategory,
     resetAndLoad,
     user,
@@ -200,7 +212,15 @@ export default function App() {
   const handleCategoryChange = (cat: "animal" | "planta" | "hongo") => {
     setActiveCategory(cat);
     setView("all");
-    setFilters({ search: "", status: "all", habitat: "all", region: "all" });
+    setFilters({
+      search: "",
+      status: "all",
+      habitat: "all",
+      region: "all",
+      orderName: "all",
+      family: "all",
+      genus: "all",
+    });
   };
 
   const handleOpenCreate = () => {

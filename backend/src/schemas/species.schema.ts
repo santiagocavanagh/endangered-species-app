@@ -7,6 +7,9 @@ export const speciesIdParamSchema = z.object({
 
 export const speciesQuerySchema = z.object({
   taxonomy: z.string().optional(),
+  orderName: z.string().optional(),
+  family: z.string().optional(),
+  genus: z.string().optional(),
   status: z.string().optional(),
   search: z.string().optional(),
   region: z.string().optional(),

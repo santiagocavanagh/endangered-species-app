@@ -91,6 +91,9 @@ export const api = {
   fetchSpecies: async (
     params: {
       kingdom?: string;
+      orderName?: string;
+      family?: string;
+      genus?: string;
       status?: string;
       search?: string;
       region?: string;
@@ -105,6 +108,9 @@ export const api = {
         page: String(params.page ?? 1),
       });
       if (params.kingdom) qp.append("taxonomy", params.kingdom);
+      if (params.orderName) qp.append("orderName", params.orderName);
+      if (params.family) qp.append("family", params.family);
+      if (params.genus) qp.append("genus", params.genus);
       if (params.status) qp.append("status", params.status);
       if (params.search) qp.append("search", params.search);
       if (params.region) qp.append("region", params.region);
