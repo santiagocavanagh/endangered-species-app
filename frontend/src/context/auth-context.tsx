@@ -32,25 +32,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (token: string, role: "admin" | "user", email: string, name?: string) => {
-  localStorage.setItem("token", token);
+    localStorage.setItem("token", token);
   localStorage.setItem("userRole", role);
-  localStorage.setItem("userEmail", email);
-  
-  if (name) {
-    localStorage.setItem("userName", name);
-  } else {
-    localStorage.removeItem("userName");
-  }
-  
-  setUser({ email, role, name });
-};
+    localStorage.setItem("userEmail", email);
 
-const logout = () => {
+    if (name) {
+      localStorage.setItem("userName", name);
+    } else {
+      localStorage.removeItem("userName");
+    }
+
+  setUser({ email, role, name });
+  };
+
+  const logout = () => {
     localStorage.clear();
     setUser(null);
   };
 
-return (
+  return (
     <AuthContext.Provider value={{ user, login, logout, isAdmin: user?.role === "admin" }}>
       {!loading && children}
     </AuthContext.Provider>
