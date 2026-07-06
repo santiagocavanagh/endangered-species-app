@@ -64,7 +64,12 @@ export default function App() {
     genus: "all",
   });
 
-  const sentinelRef = useRef<HTMLDivElement>(null); // div al final de la grilla
+  // callback ref: al montar/desmontar el sentinel actualiza sentinelEl,
+  // lo que dispara el efecto del observer solo cuando es necesario
+  const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    setSentinelEl(node);
+  }, []);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -150,9 +155,8 @@ export default function App() {
 
       setAllSpecies((prev) => [...prev, ...result.data]);
       setPage(nextPage);
-      setHasMore(
-        result.data.length === LIMIT && nextPage * LIMIT < result.total,
-      );
+      // hasMore: hay más si lo cargado hasta ahora es menor que el total
+      setHasMore(nextPage * LIMIT < result.total);
     } catch (e) {
       console.error(e);
     } finally {
@@ -161,20 +165,42 @@ export default function App() {
     }
   }, [hasMore, page, activeCategory, filters]);
 
-  // IntersectionObserver en el sentinel div
+  // Ref siempre apuntado a la última versión de loadMore.
+  // Permite que el observer llame a la versión actualizada sin necesitar reconectarse.
+  const loadMoreFnRef = useRef(loadMore);
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    loadMoreFnRef.current = loadMore;
+  }, [loadMore]);
+
+  // IntersectionObserver: usa el viewport como root (root: null) para funcionar
+  // tanto cuando <main> scrollea como cuando scrollea el window.
+  // Se reactiva SOLO cuando el sentinel entra/sale del DOM → evita cascadas al paginar.
+  useEffect(() => {
+    if (!sentinelEl) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) loadMore();
+        if (entries[0].isIntersecting) loadMoreFnRef.current();
       },
-      { threshold: 0.1 },
+      {
+        root: null,
+        rootMargin: "0px 0px 400px 0px",
+        threshold: 0,
+      },
     );
-    observer.observe(sentinel);
+    observer.observe(sentinelEl);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [sentinelEl]);
+
+  // Post-load check: si el sentinel sigue visible después de cargar (pocos resultados),
+  // dispara loadMore para rellenar el viewport sin que el usuario tenga que scrollear.
+  useEffect(() => {
+    if (isLoading || isLoadingMore || !hasMore || !sentinelEl) return;
+    const rect = sentinelEl.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 400) {
+      loadMoreFnRef.current();
+    }
+  }, [isLoading, isLoadingMore, hasMore, sentinelEl]);
 
   const hasLoadedOnce = useRef(false);
 
