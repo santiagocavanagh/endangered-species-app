@@ -49,5 +49,12 @@ export function SpeciesMapper(species: Species): SpeciesDTO {
         credit: m.credit,
         license: m.license,
       })) ?? [],
+
+    statusHistory:
+      species.statusHistory?.map((h) => ({
+        oldStatus: h.oldStatus,
+        newStatus: h.newStatus,
+        changedAt: String(h.changedAt),
+      })) ?? [],
   };
 }

@@ -24,6 +24,12 @@ export interface MediaDTO {
   license?: string | null;
 }
 
+export interface StatusHistoryDTO {
+  oldStatus: string;
+  newStatus: string;
+  changedAt: string;
+}
+
 export interface SpeciesDTO {
   id: number;
   scientificName: string;
@@ -41,4 +47,6 @@ export interface SpeciesDTO {
   latestCensus?: CensusDTO;
 
   media: MediaDTO[];
+
+  statusHistory: StatusHistoryDTO[];
 }

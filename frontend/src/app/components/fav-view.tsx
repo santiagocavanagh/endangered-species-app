@@ -6,6 +6,7 @@ interface FavoritesViewProps {
   onToggleFavorite: (id: number) => void;
   onEdit: (species: Species) => void;
   onDelete?: (id: number) => void;
+  onView?: (id: number) => void;
 }
 
 export function FavoritesView({
@@ -13,6 +14,7 @@ export function FavoritesView({
   onToggleFavorite,
   onEdit,
   onDelete,
+  onView,
 }: FavoritesViewProps) {
   if (favorites.length === 0) {
     return (
@@ -38,6 +40,7 @@ export function FavoritesView({
             onToggleFavorite={onToggleFavorite}
             onEdit={onEdit}
             onDelete={onDelete}
+            onView={onView}
           />
         ))}
       </div>

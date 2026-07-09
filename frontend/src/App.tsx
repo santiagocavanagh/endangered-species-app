@@ -6,6 +6,7 @@ import { FilterBar, Filters } from "./app/components/filter-bar";
 import { FavoritesView } from "./app/components/fav-view";
 import { SpeciesCard, type Species } from "./app/components/species-card";
 import { SpeciesModal } from "./app/components/species-modal";
+import { SpeciesDetailPage } from "./app/components/species-detail";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
@@ -47,6 +48,9 @@ export default function App() {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [favoriteSpecies, setFavoriteSpecies] = useState<Species[]>([]);
   const [view, setView] = useState<"all" | "favorites">("all");
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speciesToEdit, setSpeciesToEdit] = useState<Species | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -238,6 +242,7 @@ export default function App() {
   const handleCategoryChange = (cat: "animal" | "planta" | "hongo") => {
     setActiveCategory(cat);
     setView("all");
+    setSelectedSpeciesId(null);
     setFilters({
       search: "",
       status: "all",
@@ -331,130 +336,148 @@ export default function App() {
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
       />
-      <FilterBar
-        category={activeCategory}
-        onFilterChange={setFilters}
-        filters={filters}
-      />
 
-      <main className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Barra Explorar / Favoritos */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b pb-4">
-            <div className="flex bg-white rounded-lg p-1 shadow-sm border">
-              <button
-                onClick={() => setView("all")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${view === "all" ? "bg-emerald-600 text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                <LayoutGrid size={18} /> Explorar
-              </button>
-              <button
-                onClick={() => setView("favorites")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${view === "favorites" ? "bg-emerald-600 text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                <Heart
-                  size={18}
-                  className={view === "favorites" ? "fill-white" : ""}
-                />
-                Favoritos ({favorites.size})
-              </button>
-            </div>
+      {selectedSpeciesId !== null ? (
+        <SpeciesDetailPage
+          speciesId={selectedSpeciesId}
+          onBack={() => setSelectedSpeciesId(null)}
+          isFavorite={favorites.has(selectedSpeciesId)}
+          onToggleFavorite={toggleFavorite}
+          onViewSpecies={setSelectedSpeciesId}
+          onEdit={handleOpenEdit}
+          onDelete={handleDelete}
+          favorites={favorites}
+        />
+      ) : (
+        <>
+          <FilterBar
+            category={activeCategory}
+            onFilterChange={setFilters}
+            filters={filters}
+          />
 
-            {!isLoading && (
-              <span className="text-sm text-gray-500">
-                {view === "favorites"
-                  ? `${favoriteSpeciesByCategory.length} favoritos`
-                  : `${displaySpecies.length} de ${total} especies`}
-              </span>
-            )}
+          <main className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="max-w-7xl mx-auto">
+              {/* Barra Explorar / Favoritos */}
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b pb-4">
+                <div className="flex bg-white rounded-lg p-1 shadow-sm border">
+                  <button
+                    onClick={() => setView("all")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${view === "all" ? "bg-emerald-600 text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    <LayoutGrid size={18} /> Explorar
+                  </button>
+                  <button
+                    onClick={() => setView("favorites")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${view === "favorites" ? "bg-emerald-600 text-white shadow-md" : "text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    <Heart
+                      size={18}
+                      className={view === "favorites" ? "fill-white" : ""}
+                    />
+                    Favoritos ({favorites.size})
+                  </button>
+                </div>
 
-            {isAdmin && (
-              <button
-                onClick={handleOpenCreate}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg transition-all active:scale-95"
-              >
-                <Plus size={20} /> Nueva Especie
-              </button>
-            )}
-          </div>
+                {!isLoading && (
+                  <span className="text-sm text-gray-500">
+                    {view === "favorites"
+                      ? `${favoriteSpeciesByCategory.length} favoritos`
+                      : `${displaySpecies.length} de ${total} especies`}
+                  </span>
+                )}
 
-          {/* Loading inicial */}
-          {isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl bg-white border animate-pulse h-72"
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Grilla de especies */}
-          {!isLoading &&
-            view === "favorites" &&
-            favoriteSpeciesByCategory.length === 0 && (
-              <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
-                <p className="text-gray-400 text-xl font-light">
-                  No tenés favoritos en esta categoría.
-                </p>
-              </div>
-            )}
-
-          {!isLoading && view === "all" && displaySpecies.length === 0 && (
-            <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
-              <p className="text-gray-400 text-xl font-light">
-                No se encontraron especies con estos filtros.
-              </p>
-            </div>
-          )}
-
-          {!isLoading &&
-            view === "favorites" &&
-            favoriteSpeciesByCategory.length > 0 && (
-              <FavoritesView
-                favorites={favoriteSpeciesByCategory}
-                onToggleFavorite={toggleFavorite}
-                onEdit={handleOpenEdit}
-                onDelete={handleDelete}
-              />
-            )}
-
-          {!isLoading && view === "all" && displaySpecies.length > 0 && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {displaySpecies.map((s) => (
-                  <SpeciesCard
-                    key={s.id}
-                    species={s}
-                    isFavorite={favorites.has(s.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onEdit={handleOpenEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
+                {isAdmin && (
+                  <button
+                    onClick={handleOpenCreate}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg transition-all active:scale-95"
+                  >
+                    <Plus size={20} /> Nueva Especie
+                  </button>
+                )}
               </div>
 
-              {/* Sentinel para infinite scroll */}
-              <div ref={sentinelRef} className="h-10 mt-4" />
-
-              {/* Spinner de "cargando más" */}
-              {isLoadingMore && (
-                <div className="flex justify-center py-6">
-                  <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              {/* Loading inicial */}
+              {isLoading && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="rounded-2xl bg-white border animate-pulse h-72"
+                    />
+                  ))}
                 </div>
               )}
 
-              {/* Fin de resultados */}
-              {!hasMore && !isLoadingMore && displaySpecies.length > 0 && (
-                <p className="text-center text-gray-400 text-sm py-6">
-                  Mostrando todas las {total} especies
-                </p>
+              {/* Grilla de especies */}
+              {!isLoading &&
+                view === "favorites" &&
+                favoriteSpeciesByCategory.length === 0 && (
+                  <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+                    <p className="text-gray-400 text-xl font-light">
+                      No tenés favoritos en esta categoría.
+                    </p>
+                  </div>
+                )}
+
+              {!isLoading && view === "all" && displaySpecies.length === 0 && (
+                <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+                  <p className="text-gray-400 text-xl font-light">
+                    No se encontraron especies con estos filtros.
+                  </p>
+                </div>
               )}
-            </>
-          )}
-        </div>
-      </main>
+
+              {!isLoading &&
+                view === "favorites" &&
+                favoriteSpeciesByCategory.length > 0 && (
+                  <FavoritesView
+                    favorites={favoriteSpeciesByCategory}
+                    onToggleFavorite={toggleFavorite}
+                    onEdit={handleOpenEdit}
+                    onDelete={handleDelete}
+                    onView={setSelectedSpeciesId}
+                  />
+                )}
+
+              {!isLoading && view === "all" && displaySpecies.length > 0 && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {displaySpecies.map((s) => (
+                      <SpeciesCard
+                        key={s.id}
+                        species={s}
+                        isFavorite={favorites.has(s.id)}
+                        onToggleFavorite={toggleFavorite}
+                        onEdit={handleOpenEdit}
+                        onDelete={handleDelete}
+                        onView={setSelectedSpeciesId}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Sentinel para infinite scroll */}
+                  <div ref={sentinelRef} className="h-10 mt-4" />
+
+                  {/* Spinner de "cargando más" */}
+                  {isLoadingMore && (
+                    <div className="flex justify-center py-6">
+                      <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+
+                  {/* Fin de resultados */}
+                  {!hasMore && !isLoadingMore && displaySpecies.length > 0 && (
+                    <p className="text-center text-gray-400 text-sm py-6">
+                      Mostrando todas las {total} especies
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </main>
+        </>
+      )}
 
       <SpeciesModal
         isOpen={isModalOpen}

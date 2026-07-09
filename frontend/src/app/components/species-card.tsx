@@ -16,12 +16,19 @@ export interface Species {
   category: "animal" | "planta" | "hongo";
 }
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  animal: "/animalae.png",
+  planta: "/plantae.png",
+  hongo: "/fungi.png",
+};
+
 interface SpeciesCardProps {
   species: Species;
   isFavorite: boolean;
   onToggleFavorite: (id: number) => void;
   onEdit?: (species: Species) => void;
   onDelete?: (id: number) => void;
+  onView?: (id: number) => void;
 }
 
 export function SpeciesCard({
@@ -30,8 +37,10 @@ export function SpeciesCard({
   onToggleFavorite,
   onEdit,
   onDelete,
+  onView,
 }: SpeciesCardProps) {
   const { isAdmin } = useAuth();
+  const fallbackImg = FALLBACK_IMAGES[species.category] ?? "/animalae.png";
   const statusConfig: Record<string, { label: string; color: string }> = {
     CR: {
       label: "En Peligro Crítico",
@@ -69,16 +78,28 @@ export function SpeciesCard({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group relative">
+    <Card
+      className={`overflow-hidden hover:shadow-lg transition-shadow group relative ${onView ? "cursor-pointer" : ""}`}
+      onClick={() => onView?.(species.id)}
+    >
       <div className="relative h-48 overflow-hidden bg-gray-200">
         <img
-          src={species.imageUrl}
+          src={species.imageUrl || fallbackImg}
           alt={species.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.src !== window.location.origin + fallbackImg) {
+              img.src = fallbackImg;
+            }
+          }}
         />
 
         {isAdmin && (
-          <div className="absolute top-3 left-3 flex gap-2 z-10">
+          <div
+            className="absolute top-3 left-3 flex gap-2 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => onEdit?.(species)}
               className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-md transition-colors"
@@ -97,7 +118,10 @@ export function SpeciesCard({
         )}
 
         <button
-          onClick={() => onToggleFavorite(species.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(species.id);
+          }}
           className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-colors"
           aria-label="Agregar a favoritos"
         >

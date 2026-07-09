@@ -61,8 +61,16 @@ const parsePopulationValue = (raw: unknown): number | undefined => {
   return numbers[0];
 };
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  animalia: "/animalae.png",
+  plantae: "/plantae.png",
+  fungi: "/fungi.png",
+};
+
 const mapSpeciesToClient = (s: any): Species => {
   const k = String(s.taxonomy?.kingdom ?? "").toLowerCase();
+  const rawImageUrl =
+    Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "";
   return {
     id: Number(s.id),
     name: s.commonName ?? s.scientificName ?? "Sin nombre",
@@ -74,8 +82,7 @@ const mapSpeciesToClient = (s: any): Species => {
       s.latestCensus?.population != null
         ? String(s.latestCensus.population)
         : "",
-    imageUrl:
-      Array.isArray(s.media) && s.media.length ? s.media[0].mediaUrl : "",
+    imageUrl: rawImageUrl || FALLBACK_IMAGES[k] || "/animalae.png",
     taxonomyId: Number(s.taxonomyId ?? 0),
     category: kingdomMap[k] ?? "animal",
   };
@@ -378,6 +385,44 @@ export const api = {
       return await res.json();
     } catch (error) {
       return { error: "No se pudo quitar de favoritos" };
+    }
+  },
+
+  fetchSpeciesById: async (id: number): Promise<any | null> => {
+    try {
+      const res = await fetch(`${API_URL}/species/${id}`);
+      if (!res.ok) throw new Error("Not found");
+      return await res.json();
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  },
+
+  fetchSimilarSpecies: async (params: {
+    kingdom: string;
+    genus?: string | null;
+    family?: string | null;
+    excludeId: number;
+    limit?: number;
+  }): Promise<Species[]> => {
+    try {
+      const take = (params.limit ?? 6) + 2;
+      const qp = new URLSearchParams({ limit: String(take), page: "1" });
+      qp.append("taxonomy", params.kingdom);
+      if (params.genus) qp.append("genus", params.genus);
+      else if (params.family) qp.append("family", params.family);
+
+      const res = await fetch(`${API_URL}/species?${qp}`);
+      if (!res.ok) throw new Error("Error");
+      const result = await res.json();
+      const list = (result.data ?? []) as any[];
+      return list
+        .map(mapSpeciesToClient)
+        .filter((s) => s.id !== params.excludeId)
+        .slice(0, params.limit ?? 6);
+    } catch {
+      return [];
     }
   },
 };
