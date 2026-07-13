@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import {
   ArrowLeft,
   Star,
   MapPin,
   AlertTriangle,
-  Globe,
   Microscope,
   Users,
   TreePine,
@@ -18,6 +15,7 @@ import {
   Trash2,
   Images,
   FileText,
+  Info,
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -114,6 +112,25 @@ const KINGDOM_TO_CATEGORY: Record<string, "animal" | "planta" | "hongo"> = {
   fungi: "hongo",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  CR: "En peligro critico",
+  EN: "En peligro",
+  VU: "Vulnerable",
+  NT: "Casi amenazado",
+  LC: "Preocupacion menor",
+  DD: "Datos insuficientes",
+  EW: "Extinta en estado silvestre",
+  EX: "Extinta",
+};
+
+function toTitle(text: string): string {
+  return text
+    .split(" ")
+    .filter(Boolean)
+    .map((p) => p[0]?.toUpperCase() + p.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function getTrend(
   statusHistory: { oldStatus: string; newStatus: string; changedAt: string }[],
   currentStatus: string,
@@ -189,7 +206,7 @@ export function SpeciesDetailPage({
           genus: data.taxonomy?.genus ?? null,
           family: data.taxonomy?.family ?? null,
           excludeId: speciesId,
-          limit: 6,
+          limit: 5,
         });
         setSimilar(sim);
       }
@@ -262,179 +279,111 @@ export function SpeciesDetailPage({
     ? species.habitat.split(/[;,]/)[0].trim()
     : "Sin datos";
 
+  const trendLabel =
+    trend === "declining"
+      ? "Descenso"
+      : trend === "improving"
+        ? "Aumento"
+        : trend === "stable"
+          ? "Estable"
+          : "Sin registro";
+
+  const firstRegion = Array.isArray(species.regions) ? species.regions[0] : "";
+  const mapQuery = firstRegion
+    ? encodeURIComponent(String(firstRegion))
+    : "world";
+
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-70%2C180%2C80&layer=mapnik&marker=0%2C0`;
+
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50">
-      {/* ── Hero image ────────────────────────────────────────────── */}
-      <div className="relative w-full h-[58vh] min-h-[340px] bg-gray-900 shrink-0">
-        <img
-          src={heroImage}
-          alt={species.commonName ?? species.scientificName}
-          className="w-full h-full object-cover opacity-90"
-          onError={() => setImgError(true)}
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 px-4 py-2 rounded-full border border-white/20 transition-all font-medium text-sm"
-        >
-          <ArrowLeft size={16} />
-          Volver
-        </button>
-
-        {/* Admin buttons */}
-        {isAdmin && (
-          <div className="absolute top-4 left-32 z-10 flex gap-2">
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        <section className="bg-white rounded-2xl border shadow-sm p-4 md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <button
-              onClick={() => onEdit?.(speciesAsCard)}
-              className="flex items-center gap-1.5 bg-blue-600/80 backdrop-blur-sm text-white hover:bg-blue-600 px-3 py-2 rounded-full border border-blue-400/30 transition-all text-sm font-medium"
+              onClick={onBack}
+              className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
             >
-              <Pencil size={14} />
-              Editar
+              <ArrowLeft size={16} />
+              Volver
             </button>
-            <button
-              onClick={() => onDelete?.(species.id)}
-              className="flex items-center gap-1.5 bg-red-600/80 backdrop-blur-sm text-white hover:bg-red-600 px-3 py-2 rounded-full border border-red-400/30 transition-all text-sm font-medium"
-            >
-              <Trash2 size={14} />
-              Eliminar
-            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onToggleFavorite(species.id)}
+                className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
+              >
+                <Star
+                  size={16}
+                  className={
+                    isFavorite
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-600"
+                  }
+                />
+                Favorito
+              </button>
+
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => onEdit?.(speciesAsCard)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700"
+                  >
+                    <Pencil size={15} />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => onDelete?.(species.id)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-red-600 text-white px-3 py-2 text-sm font-medium hover:bg-red-700"
+                  >
+                    <Trash2 size={15} />
+                    Eliminar
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        )}
 
-        {/* Favorite button */}
-        <button
-          onClick={() => onToggleFavorite(species.id)}
-          className="absolute top-4 right-4 z-10 p-3 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-black/50 transition-all"
-          aria-label="Marcar como favorito"
-        >
-          <Star
-            size={22}
-            className={
-              isFavorite ? "fill-yellow-400 text-yellow-400" : "text-white"
-            }
-          />
-        </button>
-
-        {/* Species name overlay */}
-        <div className="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-8">
-          <Badge
-            className={`${config.badgeCls} border mb-3 text-sm font-semibold px-3 py-1`}
-          >
-            <AlertTriangle className="h-3 w-3 mr-1.5" />
-            {config.label}
-            {trend === "declining" && (
-              <TrendingDown className="h-3.5 w-3.5 ml-1.5 text-red-500" />
-            )}
-            {trend === "improving" && (
-              <TrendingUp className="h-3.5 w-3.5 ml-1.5 text-green-500" />
-            )}
-          </Badge>
-          <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
-            {species.commonName || species.scientificName}
-          </h1>
-          {species.commonName && (
-            <p className="text-base md:text-xl text-white/75 italic mt-1.5 drop-shadow">
+          <div className="mb-4">
+            <Badge className={`${config.badgeCls} border mb-2`}>
+              <AlertTriangle className="h-3.5 w-3.5 mr-1" />
+              {config.label}
+            </Badge>
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight">
+              {species.commonName || species.scientificName}
+            </h1>
+            <p className="text-gray-500 italic mt-1">
               {species.scientificName}
             </p>
-          )}
-        </div>
-      </div>
-
-      {/* ── Quick stats bar ───────────────────────────────────────── */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
-            <div className="flex flex-col items-center py-4 px-4">
-              <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">
-                Estado UICN
-              </span>
-              <span className={`text-xl font-bold mt-1 ${config.textColor}`}>
-                {species.iucnStatus}
-              </span>
-              <span className="text-xs text-gray-500 text-center mt-0.5">
-                {config.label}
-              </span>
-            </div>
-            <div className="flex flex-col items-center py-4 px-4">
-              <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">
-                Población est.
-              </span>
-              <span className="text-xl font-bold mt-1 text-gray-800 text-center">
-                {populationDisplay}
-              </span>
-              {species.latestCensus?.date && (
-                <span className="text-xs text-gray-500 mt-0.5">
-                  {species.latestCensus.date}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col items-center py-4 px-4">
-              <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">
-                Hábitat
-              </span>
-              <span className="text-base font-bold mt-1 text-gray-800 text-center line-clamp-2">
-                {firstHabitatSegment}
-              </span>
-            </div>
-            <div className="flex flex-col items-center py-4 px-4">
-              <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">
-                Regiones
-              </span>
-              <span className="text-xl font-bold mt-1 text-gray-800">
-                {species.regions?.length ?? 0}
-              </span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                {(species.regions?.length ?? 0) === 1 ? "región" : "regiones"}
-              </span>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* ── Body content ─────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Map */}
-        <section>
-          <div className="flex items-center gap-2.5 mb-4">
-            <Globe size={20} className="text-emerald-600" />
-            <h2 className="text-xl font-bold text-gray-800">
-              Distribución Geográfica
-            </h2>
-          </div>
-          <div
-            className="relative h-[420px] w-full rounded-2xl overflow-hidden border border-gray-200 shadow-md"
-            style={{ isolation: "isolate" }}
-          >
-            <MapContainer
-              center={[20, 0]}
-              zoom={2}
-              style={{ height: "100%", width: "100%" }}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {gbifKey && (
-                <TileLayer
-                  url={`https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?taxonKey=${gbifKey}&style=classic.poly`}
-                  attribution='&copy; <a href="https://www.gbif.org" target="_blank">GBIF</a>'
-                  opacity={0.75}
+          <div className="grid grid-cols-2 gap-5 items-start">
+            <article className="w-full">
+              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-gray-100">
+                <img
+                  src={heroImage}
+                  alt={species.commonName ?? species.scientificName}
+                  className="w-full h-full object-cover"
+                  onError={() => setImgError(true)}
                 />
-              )}
-            </MapContainer>
+              </div>
+            </article>
+
+            <article className="w-full">
+              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-white">
+                <iframe
+                  title="Mapa de distribucion"
+                  src={mapUrl}
+                  className="w-full h-full"
+                  loading="lazy"
+                />
+              </div>
+            </article>
           </div>
-          <p className="text-xs text-gray-400 mt-2 text-right">
-            {gbifKey
-              ? "Distribución basada en registros de ocurrencia de GBIF · Mapa base © OpenStreetMap"
-              : "No se encontraron registros de ocurrencia en GBIF para esta especie · Mapa base © OpenStreetMap"}
-          </p>
         </section>
 
-        {/* Info grid */}
+        {/* Ficha de datos */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Taxonomy */}
           <Card className="shadow-sm">
@@ -479,42 +428,29 @@ export function SpeciesDetailPage({
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-gray-500">Estado UICN</span>
                   <Badge className={`${config.badgeCls} border text-xs`}>
-                    {species.iucnStatus} — {config.label}
+                    {species.iucnStatus} - {config.label}
                   </Badge>
                 </div>
-                {trend && (
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-sm text-gray-500">
-                      Tendencia del estado
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-500">
+                    Tendencia poblacional
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {trend === "declining" && (
+                      <TrendingDown size={15} className="text-red-500" />
+                    )}
+                    {trend === "improving" && (
+                      <TrendingUp size={15} className="text-green-500" />
+                    )}
+                    {trend === "stable" && (
+                      <Minus size={15} className="text-blue-500" />
+                    )}
+                    {!trend && <Info size={15} className="text-gray-400" />}
+                    <span className="text-sm font-medium text-gray-900">
+                      {trendLabel}
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      {trend === "declining" && (
-                        <>
-                          <TrendingDown size={15} className="text-red-500" />
-                          <span className="text-sm font-medium text-red-600">
-                            Deterioro
-                          </span>
-                        </>
-                      )}
-                      {trend === "improving" && (
-                        <>
-                          <TrendingUp size={15} className="text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
-                            Mejora
-                          </span>
-                        </>
-                      )}
-                      {trend === "stable" && (
-                        <>
-                          <Minus size={15} className="text-blue-500" />
-                          <span className="text-sm font-medium text-blue-600">
-                            Estable
-                          </span>
-                        </>
-                      )}
-                    </div>
                   </div>
-                )}
+                </div>
                 {species.latestCensus && (
                   <>
                     <div className="flex justify-between items-center py-2">
@@ -542,6 +478,14 @@ export function SpeciesDetailPage({
                       </div>
                     )}
                   </>
+                )}
+                {!species.latestCensus && (
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm text-gray-500">Poblacion</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      Sin registro
+                    </span>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -605,6 +549,53 @@ export function SpeciesDetailPage({
               </CardContent>
             </Card>
           )}
+
+          <Card className="shadow-sm md:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-800">
+                <Info size={17} className="text-emerald-600" />
+                Ficha Resumen de la Especie
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Nombre cientifico</p>
+                  <p className="font-medium text-gray-900 italic">
+                    {species.scientificName}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Nombre comun</p>
+                  <p className="font-medium text-gray-900">
+                    {species.commonName ?? "Sin dato"}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Poblacion</p>
+                  <p className="font-medium text-gray-900">
+                    {populationDisplay}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Tendencia</p>
+                  <p className="font-medium text-gray-900">{trendLabel}</p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Orden</p>
+                  <p className="font-medium text-gray-900">
+                    {species.taxonomy?.orderName ?? "Sin dato"}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 p-3">
+                  <p className="text-gray-500">Familia</p>
+                  <p className="font-medium text-gray-900">
+                    {species.taxonomy?.family ?? "Sin dato"}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Status history */}
           {species.statusHistory?.length > 0 && (
@@ -705,11 +696,63 @@ export function SpeciesDetailPage({
           )}
         </section>
 
+        <section>
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-800">
+                <FileText size={17} className="text-emerald-600" />
+                Datos Relevantes y Diferencias Unicas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-gray-700 leading-relaxed">
+              <p>
+                <span className="font-semibold">Dato curioso:</span>{" "}
+                {species.commonName ?? species.scientificName} pertenece al
+                grupo taxonomico{" "}
+                <span className="font-medium">
+                  {toTitle(
+                    species.taxonomy?.genus ??
+                      species.taxonomy?.family ??
+                      "sin clasificacion detallada",
+                  )}
+                </span>{" "}
+                y actualmente se clasifica como{" "}
+                <span className="font-medium">
+                  {STATUS_LABELS[species.iucnStatus] ?? species.iucnStatus}
+                </span>
+                .
+              </p>
+              <p>
+                <span className="font-semibold">
+                  Diferencia frente a especies similares:
+                </span>{" "}
+                en esta ficha se destaca por su habitat{" "}
+                <span className="font-medium">
+                  {firstHabitatSegment || "no especificado"}
+                </span>{" "}
+                y por su distribucion actual en{" "}
+                <span className="font-medium">
+                  {Array.isArray(species.regions) && species.regions.length > 0
+                    ? species.regions.join(", ")
+                    : "regiones sin registro"}
+                </span>
+                .
+              </p>
+              <p className="text-xs text-gray-500">
+                Esta seccion esta preparada para enriquecerla con texto
+                editorial especifico de cada especie (comportamiento, rasgos
+                unicos, adaptaciones, subespecies) cuando agreguemos esa data en
+                backend.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Similar species */}
         {similar.length > 0 && (
           <section>
             <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Especies Similares
+              especies sugeridas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {similar.map((s) => (
