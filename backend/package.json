@@ -12,7 +12,8 @@
     "image-search": "ts-node -r tsconfig-paths/register src/scripts/image-search.ts",
     "gbif-image-search": "ts-node -r tsconfig-paths/register src/scripts/gbif-image-search.ts",
     "url-species-script": "ts-node -r tsconfig-paths/register src/scripts/url-species-script.ts",
-    "url-species-rebuild": "cross-env IMAGE_FILL_FORCE_REBUILD=true ts-node -r tsconfig-paths/register src/scripts/url-species-script.ts"
+    "url-species-rebuild": "cross-env IMAGE_FILL_FORCE_REBUILD=true ts-node -r tsconfig-paths/register src/scripts/url-species-script.ts",
+    "external-sync-batch": "ts-node -r tsconfig-paths/register src/scripts/external-sync-batch.ts"
   },
   "keywords": [],
   "author": "",

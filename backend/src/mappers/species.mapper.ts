@@ -1,6 +1,38 @@
 import { Species } from "../entities/species.entity";
 import { SpeciesDTO } from "../DTO/species.dto";
 
+function toIsoDate(value: Date | string | null | undefined): string {
+  if (!value) {
+    return "";
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString();
+  }
+
+  return String(value);
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 export function SpeciesMapper(species: Species): SpeciesDTO {
   const latest = species.populationCensus?.length
     ? species.populationCensus.reduce((prev, curr) =>
@@ -55,6 +87,18 @@ export function SpeciesMapper(species: Species): SpeciesDTO {
         oldStatus: h.oldStatus,
         newStatus: h.newStatus,
         changedAt: String(h.changedAt),
+      })) ?? [],
+
+    externalRefs:
+      species.externalRefs?.map((ref) => ({
+        id: ref.id,
+        provider: ref.provider,
+        externalId: ref.externalId,
+        matchedName: ref.matchedName,
+        confidence: toNullableNumber(ref.confidence),
+        matchStatus: ref.matchStatus,
+        meta: ref.meta,
+        updatedAt: toIsoDate(ref.updatedAt),
       })) ?? [],
   };
 }

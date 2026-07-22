@@ -17,6 +17,7 @@ import { StatusHistory } from "./status-history.entity";
 import { Region } from "./region.entity";
 import { Favorite } from "./favorite.entity";
 import { SpeciesMedia } from "./species-media.entity";
+import { SpeciesExternalRef } from "./species-ref.entity";
 
 @Entity("species")
 export class Species {
@@ -74,6 +75,9 @@ export class Species {
 
   @OneToMany(() => StatusHistory, (history) => history.species)
   statusHistory: StatusHistory[];
+
+  @OneToMany(() => SpeciesExternalRef, (ref) => ref.species)
+  externalRefs: SpeciesExternalRef[];
 
   @ManyToOne(() => Taxonomy, (taxonomy) => taxonomy.species, {
     onDelete: "RESTRICT",

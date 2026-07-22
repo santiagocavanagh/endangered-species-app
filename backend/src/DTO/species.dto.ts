@@ -30,6 +30,17 @@ export interface StatusHistoryDTO {
   changedAt: string;
 }
 
+export interface ExternalRefDTO {
+  id: number;
+  provider: string;
+  externalId: string;
+  matchedName: string | null;
+  confidence: number | null;
+  matchStatus: string;
+  meta: Record<string, unknown> | null;
+  updatedAt: string;
+}
+
 export interface SpeciesDTO {
   id: number;
   scientificName: string;
@@ -49,4 +60,6 @@ export interface SpeciesDTO {
   media: MediaDTO[];
 
   statusHistory: StatusHistoryDTO[];
+
+  externalRefs: ExternalRefDTO[];
 }

@@ -164,6 +164,7 @@ export class SpeciesService {
       .leftJoinAndSelect("species.regions", "regions")
       .leftJoinAndSelect("species.taxonomy", "taxonomy")
       .leftJoinAndSelect("species.media", "media")
+      .leftJoinAndSelect("species.externalRefs", "externalRefs")
       .leftJoinAndSelect("species.populationCensus", "populationCensus")
       .leftJoinAndSelect("populationCensus.source", "censusSource")
       .where("species.id IN (:...ids)", { ids })
@@ -193,6 +194,7 @@ export class SpeciesService {
         "regions",
         "taxonomy",
         "media",
+        "externalRefs",
         "statusHistory",
         "populationCensus",
         "populationCensus.source",
@@ -358,6 +360,7 @@ export class SpeciesService {
       "regions",
       "taxonomy",
       "media",
+      "externalRefs",
       "populationCensus",
       "populationCensus.source",
     ];

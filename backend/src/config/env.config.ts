@@ -94,4 +94,5 @@ export const ENV = {
   IUCN_API_BASE: "https://api.iucnredlist.org/api/v4",
   UNSPLASH_KEY: process.env["UNSPLASH_KEY"] ?? null,
   UNSPLASH_API_BASE: "https://api.unsplash.com/search/photos",
+  GBIF_API_BASE: "https://api.gbif.org",
 } as const;
