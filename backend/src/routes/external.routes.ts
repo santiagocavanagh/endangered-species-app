@@ -16,4 +16,11 @@ router.post(
   ExternalController.syncSpeciesReferences,
 );
 
+router.get(
+  "/species/:id/distribution",
+  limiter,
+  validateParams(speciesIdParamSchema),
+  ExternalController.getSpeciesDistribution,
+);
+
 export default router;

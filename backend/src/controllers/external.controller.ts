@@ -17,4 +17,18 @@ export class ExternalController {
       next(error);
     }
   }
+
+  static async getSpeciesDistribution(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const speciesId = Number(req.params.id);
+      const result = await service.getSpeciesDistribution(speciesId);
+      return res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

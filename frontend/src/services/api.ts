@@ -1,5 +1,19 @@
 import type { Species } from "../app/components/species-card";
 
+export interface SpeciesDistribution {
+  speciesId: number;
+  scientificName: string;
+  provider: string | null;
+  matchStatus: string | null;
+  externalId: string | null;
+  hasData: boolean;
+  occurrenceCount: number | null;
+  tileUrlTemplate: string | null;
+  attribution: string | null;
+  lastValidatedAt: string | null;
+  reason: string | null;
+}
+
 const API_URL = "http://localhost:3000/api";
 
 const getAuthHeaders = (): Record<string, string> => {
@@ -392,6 +406,19 @@ export const api = {
     try {
       const res = await fetch(`${API_URL}/species/${id}`);
       if (!res.ok) throw new Error("Not found");
+      return await res.json();
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  },
+
+  fetchSpeciesDistribution: async (
+    id: number,
+  ): Promise<SpeciesDistribution | null> => {
+    try {
+      const res = await fetch(`${API_URL}/external/species/${id}/distribution`);
+      if (!res.ok) return null;
       return await res.json();
     } catch (error) {
       console.error(error);

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   ArrowLeft,
   Star,
@@ -19,7 +21,7 @@ import {
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { api } from "../../services/api";
+import { api, type SpeciesDistribution } from "../../services/api";
 import { SpeciesCard, type Species } from "./species-card";
 import { useAuth } from "../../context/auth-context";
 
@@ -167,14 +169,18 @@ export function SpeciesDetailPage({
   const { isAdmin } = useAuth();
   const [species, setSpecies] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [gbifKey, setGbifKey] = useState<number | null>(null);
+  const [distribution, setDistribution] = useState<SpeciesDistribution | null>(
+    null,
+  );
+  const [distributionLoading, setDistributionLoading] = useState(true);
   const [similar, setSimilar] = useState<Species[]>([]);
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     setSpecies(null);
-    setGbifKey(null);
+    setDistribution(null);
+    setDistributionLoading(true);
     setSimilar([]);
     setImgError(false);
 
@@ -186,17 +192,10 @@ export function SpeciesDetailPage({
       setSpecies(data);
       setLoading(false);
 
-      // GBIF occurrence key lookup (free, no auth required)
-      if (data.scientificName) {
-        fetch(
-          `https://api.gbif.org/v1/species/match?name=${encodeURIComponent(data.scientificName)}&verbose=false`,
-        )
-          .then((r) => r.json())
-          .then((g) => {
-            if (g.usageKey) setGbifKey(g.usageKey);
-          })
-          .catch(() => {});
-      }
+      api.fetchSpeciesDistribution(speciesId).then((dist) => {
+        setDistribution(dist);
+        setDistributionLoading(false);
+      });
 
       // Similar species by genus → fallback to family
       const kingdom = data.taxonomy?.kingdom;
@@ -288,13 +287,6 @@ export function SpeciesDetailPage({
           ? "Estable"
           : "Sin registro";
 
-  const firstRegion = Array.isArray(species.regions) ? species.regions[0] : "";
-  const mapQuery = firstRegion
-    ? encodeURIComponent(String(firstRegion))
-    : "world";
-
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-70%2C180%2C80&layer=mapnik&marker=0%2C0`;
-
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
@@ -371,14 +363,40 @@ export function SpeciesDetailPage({
             </article>
 
             <article className="w-full">
-              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-white">
-                <iframe
-                  title="Mapa de distribucion"
-                  src={mapUrl}
-                  className="w-full h-full"
-                  loading="lazy"
-                />
+              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-white relative">
+                {distributionLoading ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : distribution?.hasData && distribution.tileUrlTemplate ? (
+                  <MapContainer
+                    center={[10, 0]}
+                    zoom={1}
+                    scrollWheelZoom={false}
+                    attributionControl={false}
+                    className="w-full h-full"
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <TileLayer url={distribution.tileUrlTemplate} />
+                  </MapContainer>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-50 text-center p-4">
+                    <MapPin size={28} className="text-gray-300" />
+                    <p className="text-sm text-gray-500">
+                      {distribution?.reason === "no_gbif_reference"
+                        ? "Sin identificador externo asociado a esta especie."
+                        : "No hay registros geográficos disponibles para esta especie."}
+                    </p>
+                  </div>
+                )}
               </div>
+              {distribution?.hasData && distribution.attribution && (
+                <p className="text-xs text-gray-400 mt-1.5 text-right">
+                  {distribution.attribution}
+                  {distribution.occurrenceCount != null &&
+                    ` · ${distribution.occurrenceCount.toLocaleString("es-ES")} registros`}
+                </p>
+              )}
             </article>
           </div>
         </section>

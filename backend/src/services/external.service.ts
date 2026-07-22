@@ -61,6 +61,26 @@ export interface ExternalBatchSyncResult {
   errors: ExternalBatchSyncError[];
 }
 
+interface GbifCoverageMeta {
+  hasCoordinates: boolean;
+  occurrenceCount: number;
+  validatedAt: string;
+}
+
+export interface SpeciesDistributionDTO {
+  speciesId: number;
+  scientificName: string;
+  provider: ExternalProvider | null;
+  matchStatus: MatchStatus | null;
+  externalId: string | null;
+  hasData: boolean;
+  occurrenceCount: number | null;
+  tileUrlTemplate: string | null;
+  attribution: string | null;
+  lastValidatedAt: string | null;
+  reason: string | null;
+}
+
 interface GbifMatchResponse {
   usageKey?: number;
   speciesKey?: number;
@@ -89,6 +109,83 @@ export class ExternalService {
       species.id,
       species.scientificName,
     );
+  }
+
+  async getSpeciesDistribution(
+    speciesId: number,
+  ): Promise<SpeciesDistributionDTO> {
+    const species = await this.speciesRepo.findOne({
+      where: { id: speciesId },
+      relations: ["externalRefs"],
+    });
+
+    if (!species) {
+      throw new NotFoundError("Especie no encontrada");
+    }
+
+    let gbifRef = species.externalRefs?.find(
+      (ref) => ref.provider === ExternalProvider.GBIF,
+    );
+
+    // Lazy match: si nunca se sincronizo esta especie con GBIF, se intenta
+    // resolver aqui mismo en el primer request de distribucion.
+    if (!gbifRef) {
+      await this.syncGbifReference(species.id, species.scientificName);
+      gbifRef =
+        (await this.refRepo.findOneBy({
+          speciesId: species.id,
+          provider: ExternalProvider.GBIF,
+        })) ?? undefined;
+    }
+
+    if (
+      !gbifRef ||
+      !gbifRef.externalId ||
+      gbifRef.matchStatus === MatchStatus.NOT_FOUND
+    ) {
+      return {
+        speciesId: species.id,
+        scientificName: species.scientificName,
+        provider: null,
+        matchStatus: gbifRef?.matchStatus ?? null,
+        externalId: null,
+        hasData: false,
+        occurrenceCount: null,
+        tileUrlTemplate: null,
+        attribution: null,
+        lastValidatedAt: null,
+        reason: "no_gbif_reference",
+      };
+    }
+
+    let coverage = this.readGbifCoverage(gbifRef.meta);
+
+    if (!coverage) {
+      coverage = await this.fetchGbifCoverage(gbifRef.externalId);
+
+      if (coverage) {
+        gbifRef.meta = { ...(gbifRef.meta ?? {}), coverage };
+        await this.refRepo.save(gbifRef);
+      }
+    }
+
+    const hasData = coverage?.hasCoordinates ?? false;
+
+    return {
+      speciesId: species.id,
+      scientificName: species.scientificName,
+      provider: ExternalProvider.GBIF,
+      matchStatus: gbifRef.matchStatus,
+      externalId: gbifRef.externalId,
+      hasData,
+      occurrenceCount: coverage?.occurrenceCount ?? null,
+      tileUrlTemplate: hasData
+        ? `${ENV.GBIF_API_BASE}/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?taxonKey=${gbifRef.externalId}`
+        : null,
+      attribution: hasData ? "Datos de distribución: GBIF.org" : null,
+      lastValidatedAt: coverage?.validatedAt ?? null,
+      reason: hasData ? null : "no_georeferenced_occurrences",
+    };
   }
 
   async syncBatchSpeciesReferences(
@@ -161,7 +258,105 @@ export class ExternalService {
     scientificName: string,
   ): Promise<ProviderSyncResult> {
     const candidate = await this.resolveGbifMatch(scientificName);
-    return this.persistCandidate(speciesId, ExternalProvider.GBIF, candidate);
+    const result = await this.persistCandidate(
+      speciesId,
+      ExternalProvider.GBIF,
+      candidate,
+    );
+
+    if (result.persisted && result.externalId) {
+      await this.syncGbifCoverage(speciesId, result.externalId);
+    }
+
+    return result;
+  }
+
+  private async syncGbifCoverage(
+    speciesId: number,
+    usageKey: string,
+  ): Promise<void> {
+    const coverage = await this.fetchGbifCoverage(usageKey);
+
+    if (!coverage) {
+      return;
+    }
+
+    const ref = await this.refRepo.findOneBy({
+      speciesId,
+      provider: ExternalProvider.GBIF,
+    });
+
+    if (!ref) {
+      return;
+    }
+
+    ref.meta = { ...(ref.meta ?? {}), coverage };
+    await this.refRepo.save(ref);
+  }
+
+  private async fetchGbifCoverage(
+    usageKey: string,
+  ): Promise<GbifCoverageMeta | null> {
+    try {
+      const { data } = await axios.get(
+        `${ENV.GBIF_API_BASE}/v1/occurrence/search`,
+        {
+          params: {
+            taxonKey: usageKey,
+            hasCoordinate: true,
+            limit: 0,
+          },
+          timeout: HTTP_TIMEOUT_MS,
+        },
+      );
+
+      const count = typeof data?.count === "number" ? data.count : 0;
+
+      return {
+        hasCoordinates: count > 0,
+        occurrenceCount: count,
+        validatedAt: new Date().toISOString(),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private readGbifCoverage(
+    meta: Record<string, unknown> | null,
+  ): GbifCoverageMeta | null {
+    if (!meta) {
+      return null;
+    }
+
+    const coverage = meta["coverage"];
+    if (!coverage || typeof coverage !== "object") {
+      return null;
+    }
+
+    const record = coverage as Record<string, unknown>;
+    const hasCoordinates =
+      typeof record["hasCoordinates"] === "boolean"
+        ? (record["hasCoordinates"] as boolean)
+        : null;
+    const occurrenceCount =
+      typeof record["occurrenceCount"] === "number"
+        ? (record["occurrenceCount"] as number)
+        : null;
+    const validatedAt =
+      typeof record["validatedAt"] === "string"
+        ? (record["validatedAt"] as string)
+        : null;
+
+    if (
+      hasCoordinates === null ||
+      occurrenceCount === null ||
+      validatedAt === null
+    ) {
+      return null;
+    }
+
+    return { hasCoordinates, occurrenceCount, validatedAt };
   }
 
   private async syncIucnReference(
