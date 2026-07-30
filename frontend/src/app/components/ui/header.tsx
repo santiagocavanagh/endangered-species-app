@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { LogOut, User } from "lucide-react";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { useAuth } from "../../context/auth-context";
-import { LoginModal } from "./login-modal";
-import { RegisterModal } from "./register-modal";
-import { ProfileModal } from "./profile-modal";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { useAuth } from "../../../context/auth-context";
+import { LoginModal } from "../user/login-modal";
+import { RegisterModal } from "../user/register-modal";
+import { ProfileModal } from "../user/profile-modal";
 
 interface HeaderProps {
   activeCategory: "animal" | "planta" | "hongo";

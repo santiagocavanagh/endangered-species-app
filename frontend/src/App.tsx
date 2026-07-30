@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { api } from "./services/api";
 import { useAuth } from "./context/auth-context";
-import { Header } from "./app/components/header";
-import { FilterBar, Filters } from "./app/components/filter-bar";
-import { FavoritesView } from "./app/components/fav-view";
-import { SpeciesCard, type Species } from "./app/components/species-card";
-import { SpeciesModal } from "./app/components/species-modal";
-import { SpeciesDetailPage } from "./app/components/species-detail";
+import { Header } from "./app/components/ui/header";
+import { FilterBar, Filters } from "./app/components/ui/filter-bar";
+import { FavoritesView } from "./app/components/ui/fav-view";
+import { SpeciesCard, type Species } from "./app/components/species/species-card";
+import { SpeciesModal } from "./app/components/species/species-modal";
+import { SpeciesDetailPage } from "./app/components/species/species-detail";
 import { Plus, Heart, LayoutGrid } from "lucide-react";
 import { toast, Toaster } from "sonner";
 

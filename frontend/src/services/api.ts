@@ -1,4 +1,4 @@
-import type { Species } from "../app/components/species-card";
+import type { Species } from "../app/components/species/species-card";
 
 export interface SpeciesDistribution {
   speciesId: number;

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Label } from "./ui/label";
+import { Label } from "../ui/label";
 import { X, Save, Trash2, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "../../services/api";
+import { api } from "../../../services/api";
 import { Species } from "./species-card";
 
 interface SpeciesModalProps {
