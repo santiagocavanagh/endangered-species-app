@@ -150,7 +150,7 @@ Base URL: `http://localhost:3000/api`
 
 - Node.js 18+
 - MySQL 8
-- npm
+- npm/pnpm
 
 ### 1. Clone the repository
 
@@ -280,5 +280,5 @@ ISC
 
 ## 👤 Author
 
-**Santiago Cavanagh**  
+**Santiago Cavanagh**
 [github.com/santiagocavanagh](https://github.com/santiagocavanagh)

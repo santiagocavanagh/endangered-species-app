@@ -1,2 +1,15 @@
 allowBuilds:
   bcrypt: true
+minimumReleaseAgeExclude:
+  - form-data@4.0.6
+  - axios@1.18.0
+  - brace-expansion@2.1.2
+  - brace-expansion@5.0.7
+  - body-parser@2.3.0
+  - typeorm@0.3.31
+  - brace-expansion@5.0.8
+overrides:
+  minimatch: "^10.2.1"
+  "brace-expansion@^1.0.0 || ^2.0.0": "^2.1.2"
+  "brace-expansion@^5.0.0": "^5.0.8"
+  glob: "^13.0.0"
