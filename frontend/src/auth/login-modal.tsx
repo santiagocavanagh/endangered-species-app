@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { api } from '../../../services/api';
-import { useAuth } from '../../../context/auth-context';
-import { Label } from '../ui/label';
-import { cn } from '../ui/utils';
-import { X, Lock, Mail, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { api } from "../services/api";
+import { useAuth } from "../context/auth-context";
+import { cn } from "../ui/utils";
+import { Label } from "../ui/label";
+import { X, Lock, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export function LoginModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
@@ -18,26 +24,30 @@ export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
     e.preventDefault();
     setLoading(true);
     try {
-      await api.register({ email, password });
-      // Auto-login after successful registration
-      const loginData = await api.login({ email, password });
-      login(loginData.token, loginData.role, loginData.email, loginData.name);
-      toast.success("¡Cuenta creada exitosamente! Bienvenido a EcoGuard.");
+      const data = await api.login({ email, password });
+      login(data.token, data.role, data.email, data.name);
       onClose();
     } catch (err) {
-      toast.error("Error al registrarse. El email puede estar en uso.");
+      toast.error("Credenciales incorrectas. Intentá de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={cn("fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200")}>
+    <div
+      className={cn(
+        "fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200",
+      )}
+    >
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Bienvenido</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
               <X size={20} />
             </button>
           </div>
@@ -46,7 +56,10 @@ export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
             <div className="space-y-2">
               <Label htmlFor="email">Correo Electrónico</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-muted-foreground" size={16} />
+                <Mail
+                  className="absolute left-3 top-3 text-muted-foreground"
+                  size={16}
+                />
                 <input
                   id="email"
                   type="email"
@@ -62,7 +75,10 @@ export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-muted-foreground" size={16} />
+                <Lock
+                  className="absolute left-3 top-3 text-muted-foreground"
+                  size={16}
+                />
                 <input
                   id="password"
                   type="password"
@@ -80,7 +96,11 @@ export function RegisterModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
               disabled={loading}
               className="w-full bg-green-700 text-white py-2.5 rounded-md font-semibold hover:bg-green-800 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : "Entrar a EcoGuard"}
+              {loading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                "Entrar a EcoGuard"
+              )}
             </button>
           </form>
 

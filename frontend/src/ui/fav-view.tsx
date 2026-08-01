@@ -1,4 +1,4 @@
-import { SpeciesCard, type Species } from "../species/species-card";
+import { SpeciesCard, type Species } from "../app/species-card";
 import { HeartOff } from "lucide-react";
 
 interface FavoritesViewProps {
