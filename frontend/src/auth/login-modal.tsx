@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
 import { useAuth } from "../context/auth-context";
-import { cn } from "../ui/utils";
+import { cn } from "../utils/utils";
 import { Label } from "../ui/label";
 import { X, Lock, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
