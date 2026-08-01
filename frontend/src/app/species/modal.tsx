@@ -3,7 +3,7 @@ import { Label } from "../../ui/label";
 import { X, Save, Trash2, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "../../services/api";
-import { Species } from "./species-card";
+import { Species } from "./card";
 
 interface SpeciesModalProps {
   isOpen: boolean;
