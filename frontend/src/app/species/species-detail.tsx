@@ -19,11 +19,11 @@ import {
   FileText,
   Info,
 } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { api, type SpeciesDistribution } from "../services/api";
+import { Badge } from "../../ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { api, type SpeciesDistribution } from "../../services/api";
 import { SpeciesCard, type Species } from "./species-card";
-import { useAuth } from "../context/auth-context";
+import { useAuth } from "../../context/auth-context";
 
 interface SpeciesDetailPageProps {
   speciesId: number;
