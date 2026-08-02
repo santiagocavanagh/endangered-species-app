@@ -8,6 +8,12 @@ export interface SpeciesDistribution {
   externalId: string | null;
   hasData: boolean;
   occurrenceCount: number | null;
+  bbox: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  } | null;
   tileUrlTemplate: string | null;
   attribution: string | null;
   lastValidatedAt: string | null;

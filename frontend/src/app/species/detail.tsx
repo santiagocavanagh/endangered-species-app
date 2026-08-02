@@ -125,6 +125,29 @@ const STATUS_LABELS: Record<string, string> = {
   EX: "Extinta",
 };
 
+type MapViewport = {
+  bounds?: [[number, number], [number, number]];
+  boundsOptions?: { padding: [number, number]; maxZoom: number };
+  center?: [number, number];
+  zoom?: number;
+};
+
+// Convierte el bbox real de ocurrencias GBIF en un viewport de Leaflet;
+// sin bbox (o un solo punto) cae a un encuadre mundial fijo.
+function toMapViewport(bbox: SpeciesDistribution["bbox"]): MapViewport {
+  if (!bbox) {
+    return { center: [10, 0], zoom: 1 };
+  }
+
+  return {
+    bounds: [
+      [bbox.minLat, bbox.minLng],
+      [bbox.maxLat, bbox.maxLng],
+    ],
+    boundsOptions: { padding: [24, 24], maxZoom: 6 },
+  };
+}
+
 function toTitle(text: string): string {
   return text
     .split(" ")
@@ -370,8 +393,8 @@ export function SpeciesDetailPage({
                   </div>
                 ) : distribution?.hasData && distribution.tileUrlTemplate ? (
                   <MapContainer
-                    center={[10, 0]}
-                    zoom={1}
+                    key={speciesId}
+                    {...toMapViewport(distribution.bbox)}
                     scrollWheelZoom={false}
                     attributionControl={false}
                     className="w-full h-full"

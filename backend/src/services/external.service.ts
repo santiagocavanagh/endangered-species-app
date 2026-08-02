@@ -61,10 +61,18 @@ export interface ExternalBatchSyncResult {
   errors: ExternalBatchSyncError[];
 }
 
+interface GbifBoundingBox {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
 interface GbifCoverageMeta {
   hasCoordinates: boolean;
   occurrenceCount: number;
   validatedAt: string;
+  bbox: GbifBoundingBox | null;
 }
 
 export interface SpeciesDistributionDTO {
@@ -75,6 +83,7 @@ export interface SpeciesDistributionDTO {
   externalId: string | null;
   hasData: boolean;
   occurrenceCount: number | null;
+  bbox: GbifBoundingBox | null;
   tileUrlTemplate: string | null;
   attribution: string | null;
   lastValidatedAt: string | null;
@@ -151,6 +160,7 @@ export class ExternalService {
         externalId: null,
         hasData: false,
         occurrenceCount: null,
+        bbox: null,
         tileUrlTemplate: null,
         attribution: null,
         lastValidatedAt: null,
@@ -179,6 +189,7 @@ export class ExternalService {
       externalId: gbifRef.externalId,
       hasData,
       occurrenceCount: coverage?.occurrenceCount ?? null,
+      bbox: coverage?.bbox ?? null,
       tileUrlTemplate: hasData
         ? `${ENV.GBIF_API_BASE}/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?taxonKey=${gbifRef.externalId}`
         : null,
@@ -304,22 +315,63 @@ export class ExternalService {
           params: {
             taxonKey: usageKey,
             hasCoordinate: true,
-            limit: 0,
+            hasGeospatialIssue: false,
+            // limit>0 nos da una muestra real de coordenadas para el bbox,
+            // el conteo total ("count") es exacto sin importar el limit usado.
+            limit: 300,
           },
           timeout: HTTP_TIMEOUT_MS,
         },
       );
 
       const count = typeof data?.count === "number" ? data.count : 0;
+      const results = Array.isArray(data?.results) ? data.results : [];
+      const bbox = this.computeBoundingBox(results);
 
       return {
         hasCoordinates: count > 0,
         occurrenceCount: count,
         validatedAt: new Date().toISOString(),
+        bbox,
       };
     } catch {
       return null;
     }
+  }
+
+  private computeBoundingBox(
+    results: Array<Record<string, unknown>>,
+  ): GbifBoundingBox | null {
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+
+    for (const record of results) {
+      const lat = record["decimalLatitude"];
+      const lng = record["decimalLongitude"];
+
+      if (typeof lat !== "number" || typeof lng !== "number") {
+        continue;
+      }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        continue;
+      }
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        continue;
+      }
+
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+    }
+
+    if (!Number.isFinite(minLat) || !Number.isFinite(minLng)) {
+      return null;
+    }
+
+    return { minLat, maxLat, minLng, maxLng };
   }
 
   private readGbifCoverage(
@@ -356,7 +408,35 @@ export class ExternalService {
       return null;
     }
 
-    return { hasCoordinates, occurrenceCount, validatedAt };
+    // bbox es opcional: filas cacheadas antes de esta version no lo tienen
+    // y no deben forzar un nuevo llamado a GBIF solo por esto.
+    const rawBbox = record["bbox"];
+    const bbox =
+      rawBbox && typeof rawBbox === "object"
+        ? this.parseStoredBoundingBox(rawBbox as Record<string, unknown>)
+        : null;
+
+    return { hasCoordinates, occurrenceCount, validatedAt, bbox };
+  }
+
+  private parseStoredBoundingBox(
+    record: Record<string, unknown>,
+  ): GbifBoundingBox | null {
+    const minLat = record["minLat"];
+    const maxLat = record["maxLat"];
+    const minLng = record["minLng"];
+    const maxLng = record["maxLng"];
+
+    if (
+      typeof minLat !== "number" ||
+      typeof maxLat !== "number" ||
+      typeof minLng !== "number" ||
+      typeof maxLng !== "number"
+    ) {
+      return null;
+    }
+
+    return { minLat, maxLat, minLng, maxLng };
   }
 
   private async syncIucnReference(
