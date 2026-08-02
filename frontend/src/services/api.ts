@@ -81,6 +81,10 @@ const FALLBACK_IMAGES: Record<string, string> = {
   fungi: "/fungi.png",
 };
 
+// Las imagenes de fallback son rutas locales ("/animalae.png"), no URLs reales.
+const isRealImageUrl = (value: unknown): value is string =>
+  typeof value === "string" && /^https?:\/\//i.test(value.trim());
+
 const mapSpeciesToClient = (s: any): Species => {
   const k = String(s.taxonomy?.kingdom ?? "").toLowerCase();
   const rawImageUrl =
@@ -194,7 +198,7 @@ export const api = {
         regionIds,
       };
 
-      if (data.imageUrl) payload.imageUrl = data.imageUrl;
+      if (isRealImageUrl(data.imageUrl)) payload.imageUrl = data.imageUrl;
 
       const rawPopulation = String(data.population ?? "").trim();
       if (rawPopulation) {
@@ -258,7 +262,7 @@ export const api = {
         regionIds: regionIds.length ? regionIds : undefined,
       };
 
-      if (data.imageUrl) payload.imageUrl = data.imageUrl;
+      if (isRealImageUrl(data.imageUrl)) payload.imageUrl = data.imageUrl;
 
       const population = parsePopulationValue(data.population);
       if (population !== undefined) {

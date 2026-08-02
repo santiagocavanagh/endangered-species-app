@@ -98,7 +98,10 @@ export function SpeciesModal({
         habitat: speciesToEdit.habitat,
         region: speciesToEdit.region,
         population: speciesToEdit.population,
-        imageUrl: speciesToEdit.imageUrl,
+        // las imagenes de fallback por reino no son una URL real editable
+        imageUrl: /^https?:\/\//i.test(speciesToEdit.imageUrl ?? "")
+          ? speciesToEdit.imageUrl
+          : "",
         category: speciesToEdit.category,
       });
     } else {

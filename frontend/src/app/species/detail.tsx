@@ -363,7 +363,7 @@ export function SpeciesDetailPage({
             </article>
 
             <article className="w-full">
-              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-white relative">
+              <div className="w-full aspect-square rounded-xl overflow-hidden border bg-white relative isolate">
                 {distributionLoading ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
                     <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
