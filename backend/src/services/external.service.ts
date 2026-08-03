@@ -105,6 +105,7 @@ export class ExternalService {
   private speciesRepo = AppDataSource.getRepository(Species);
   private refRepo = AppDataSource.getRepository(SpeciesExternalRef);
 
+  // syncronize found species reference with species ref entity
   async syncSpeciesReferences(
     speciesId: number,
   ): Promise<SpeciesExternalSyncResult> {
@@ -114,10 +115,7 @@ export class ExternalService {
       throw new NotFoundError("Especie no encontrada");
     }
 
-    return this.syncSpeciesReferencesFromEntity(
-      species.id,
-      species.scientificName,
-    );
+    return this.syncSpeciesReferencesEntity(species.id, species.scientificName);
   }
 
   async getSpeciesDistribution(
@@ -136,8 +134,7 @@ export class ExternalService {
       (ref) => ref.provider === ExternalProvider.GBIF,
     );
 
-    // Lazy match: si nunca se sincronizo esta especie con GBIF, se intenta
-    // resolver aqui mismo en el primer request de distribucion.
+    // Lazy match: try sync here if specie never matched with GBIF
     if (!gbifRef) {
       await this.syncGbifReference(species.id, species.scientificName);
       gbifRef =
@@ -219,7 +216,7 @@ export class ExternalService {
 
     for (const species of speciesList) {
       try {
-        const synced = await this.syncSpeciesReferencesFromEntity(
+        const synced = await this.syncSpeciesReferencesEntity(
           species.id,
           species.scientificName,
         );
@@ -228,7 +225,7 @@ export class ExternalService {
         errors.push({
           speciesId: species.id,
           scientificName: species.scientificName,
-          reason: error instanceof Error ? error.message : "unknown_error",
+          reason: error instanceof Error ? error.message : "specie_not_found",
         });
       }
 
@@ -248,7 +245,7 @@ export class ExternalService {
     };
   }
 
-  private async syncSpeciesReferencesFromEntity(
+  private async syncSpeciesReferencesEntity(
     speciesId: number,
     scientificName: string,
   ): Promise<SpeciesExternalSyncResult> {
@@ -316,8 +313,6 @@ export class ExternalService {
             taxonKey: usageKey,
             hasCoordinate: true,
             hasGeospatialIssue: false,
-            // limit>0 nos da una muestra real de coordenadas para el bbox,
-            // el conteo total ("count") es exacto sin importar el limit usado.
             limit: 300,
           },
           timeout: HTTP_TIMEOUT_MS,
@@ -408,8 +403,6 @@ export class ExternalService {
       return null;
     }
 
-    // bbox es opcional: filas cacheadas antes de esta version no lo tienen
-    // y no deben forzar un nuevo llamado a GBIF solo por esto.
     const rawBbox = record["bbox"];
     const bbox =
       rawBbox && typeof rawBbox === "object"
