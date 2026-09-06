@@ -1,0 +1,66 @@
+# --- DEPENDENCIAS ---
+node_modules/
+**/node_modules/
+
+# --- SEGURIDAD (BLINDADO GLOBAL) ---
+.env
+*.env
+.env.*
+**/.env
+**/.env.*
+# --- SEGURIDAD (EXCEPCIONES) ---
+!**/.env.example
+
+# --- COMPILACIÓN ---
+dist/
+**/dist/
+migrations/
+dist/migrations/
+backend/src/migrations/
+coverage/
+build/
+out/
+bin/
+obj/
+
+# --- LOGS ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# --- SISTEMA Y EDITORES ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- TYPESCRIPT ---
+*.tsbuildinfo
+*.js.map
+
+
+# --- FRONTEND (Especificidades de Vite) ---
+frontend/.vite/
+.vite/
+
+# --- MISC Y TEMPORALES ---
+*.pem
+*.tmp
+*.temp
+ormconfig.json
+
+# --- SCRIPTS ---
+scripts/
+seeds/
+
+# --- REPORTES ---
+/REPORTES
+*ANALISIS_ERRORES_VULNERABILIDADES.md
+ANALISIS_ERRORES_VULNERABILIDADES.md
+AUDITORIA_EXHAUSTIVA_26_ENERO.md
+DETALLE_CRITICA2_VALIDACION.md
+EXPLICACION_TYPESCRIPT_E_ISADMIN.md
