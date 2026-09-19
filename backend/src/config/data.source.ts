@@ -12,10 +12,10 @@ export const AppDataSource = new DataSource({
   password: ENV.DB.PASSWORD,
   database: ENV.DB.NAME,
   entities:
-    ENV.NODE_ENV === "production"
-      ? ["dist/**/*.entity.js"]
-      : ["src/**/*.entity.ts"],
-  synchronize: ENV.NODE_ENV !== "production",
-  logging: ENV.NODE_ENV === "development",
+    ENV.NODE_ENV === "development"
+      ? ["src/**/*.entity.ts"]
+      : ["dist/**/*.entity.js"],
+  synchronize: ENV.NODE_ENV === "development" ? true : false,
+  logging: ENV.NODE_ENV === "development" ? true : false,
   ssl: ENV.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
 });
