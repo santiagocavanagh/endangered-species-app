@@ -5,7 +5,10 @@ import { NotFoundError } from "../errors/http.error";
 export class TaxonomyService {
   private taxonomyRepo = AppDataSource.getRepository(Taxonomy);
 
-  async getAll() {
+  async getAll(kingdom?: string) {
+    if (kingdom) {
+      return this.taxonomyRepo.findBy({ kingdom: kingdom.toUpperCase() });
+    }
     return this.taxonomyRepo.find();
   }
 

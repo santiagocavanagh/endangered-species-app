@@ -74,6 +74,8 @@ export class SpeciesService {
     return this.speciesRepo.find({
       where: { iucnStatus: In(["CR", "EN", "VU"]) },
       relations: this.baseRelations(),
+      order: { id: "DESC" },
+      take: 100,
     });
   }
 
@@ -81,6 +83,8 @@ export class SpeciesService {
     return this.speciesRepo.find({
       where: { iucnStatus: In(["NT", "LC"]) },
       relations: this.baseRelations(),
+      order: { id: "DESC" },
+      take: 100,
     });
   }
 
@@ -89,16 +93,17 @@ export class SpeciesService {
     const limit = query.limit ?? 10;
     const offset = (page - 1) * limit;
 
-    //1) IDs filtrados
+    // 1) IDs filtrados
     const idQb = this.speciesRepo
       .createQueryBuilder("s")
       .select("s.id", "id")
-      .innerJoin("s.taxonomy", "t")
-      .leftJoin("s.regions", "r");
+      .innerJoin("s.taxonomy", "t");
 
     if (query.taxonomy) {
-      idQb.andWhere("LOWER(t.kingdom) LIKE LOWER(:taxonomy)", {
-        taxonomy: `%${query.taxonomy}%`,
+      // Match exacto (case-insensitive vía normalización, no LOWER() en SQL) para
+      // que MySQL pueda usar el índice de taxonomy en vez de escanear toda `species`.
+      idQb.andWhere("t.kingdom = :taxonomy", {
+        taxonomy: query.taxonomy.toUpperCase(),
       });
     }
     if (query.orderName) {
@@ -128,9 +133,13 @@ export class SpeciesService {
       );
     }
     if (query.region) {
-      idQb.andWhere("LOWER(r.name) = LOWER(:region)", {
-        region: query.region,
-      });
+      // Join de regiones solo cuando se filtra por región: evita duplicar filas
+      // (y forzar una tabla temporal para el DISTINCT) en cada consulta sin ese filtro.
+      idQb
+        .leftJoin("s.regions", "r")
+        .andWhere("LOWER(r.name) = LOWER(:region)", {
+          region: query.region,
+        });
     }
     if (query.habitat) {
       const keywords = HABITAT_KEYWORDS[query.habitat] ?? [query.habitat];
@@ -158,20 +167,20 @@ export class SpeciesService {
 
     const ids: number[] = idRows.map((r) => Number(r.id));
 
-    //2) datos completos para esos IDs (PK lookup)
+    // 2) datos completos para esos IDs (PK lookup)
+    // externalRefs no se incluye acá: no lo usa la vista de listado (solo el detalle vía getOne).
     const data = await this.speciesRepo
       .createQueryBuilder("species")
       .leftJoinAndSelect("species.regions", "regions")
       .leftJoinAndSelect("species.taxonomy", "taxonomy")
       .leftJoinAndSelect("species.media", "media")
-      .leftJoinAndSelect("species.externalRefs", "externalRefs")
       .leftJoinAndSelect("species.populationCensus", "populationCensus")
       .leftJoinAndSelect("populationCensus.source", "censusSource")
       .where("species.id IN (:...ids)", { ids })
       .orderBy("species.id", "DESC")
       .getMany();
 
-    //3) latestCensus calculado
+    // 3) latestCensus calculado
     const enriched = data.map((s) => ({
       ...s,
       latestCensus: s.populationCensus?.length

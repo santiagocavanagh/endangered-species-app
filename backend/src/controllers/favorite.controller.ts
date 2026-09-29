@@ -1,4 +1,5 @@
-import { Response, NextFunction } from "express";
+import { Response } from "express";
+import { asyncHandler } from "../utils/async-handler.util";
 import { FavoriteService } from "../services/favorite.service";
 import { requireUser } from "../utils/require-user.util";
 import { AuthRequest } from "../types/auth.types";
@@ -10,49 +11,27 @@ type ReqWithParams = AuthRequest & {
 };
 
 export const FavoriteController = {
-  getFavorites: async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      requireUser(req);
-      const data = await service.getFavorites(req.user.id);
-      return res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  },
+  getFavorites: asyncHandler(async (req: AuthRequest, res: Response) => {
+    requireUser(req);
+    const data = await service.getFavorites(req.user.id);
+    res.json(data);
+  }),
 
-  addFavorite: async (
-    req: ReqWithParams,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      requireUser(req);
-      const result = await service.addFavorite(
-        req.user.id,
-        Number(req.params.id),
-      );
+  addFavorite: asyncHandler(async (req: ReqWithParams, res: Response) => {
+    requireUser(req);
+    const result = await service.addFavorite(
+      req.user.id,
+      Number(req.params.id),
+    );
+    res.status(201).json(result);
+  }),
 
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  removeFavorite: async (
-    req: ReqWithParams,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      requireUser(req);
-      const result = await service.removeFavorite(
-        req.user.id,
-        Number(req.params.id),
-      );
-
-      return res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
+  removeFavorite: asyncHandler(async (req: ReqWithParams, res: Response) => {
+    requireUser(req);
+    const result = await service.removeFavorite(
+      req.user.id,
+      Number(req.params.id),
+    );
+    res.json(result);
+  }),
 };

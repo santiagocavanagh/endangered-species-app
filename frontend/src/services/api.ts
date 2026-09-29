@@ -175,6 +175,7 @@ export const api = {
       page?: number;
       limit?: number;
     } = {},
+    signal?: AbortSignal,
   ): Promise<{ data: any[]; total: number }> => {
     try {
       const qp = new URLSearchParams({
@@ -190,7 +191,7 @@ export const api = {
       if (params.region) qp.append("region", params.region);
       if (params.habitat) qp.append("habitat", params.habitat);
 
-      const response = await fetch(`${API_URL}/species?${qp}`);
+      const response = await fetch(`${API_URL}/species?${qp}`, { signal });
       if (!response.ok) throw new Error("Error en el servidor");
 
       const result = await response.json();
@@ -203,6 +204,11 @@ export const api = {
         total: result.meta?.total ?? mapped.length,
       };
     } catch (error) {
+      // Una request cancelada (filtro/categoría cambiaron) no es un error real: se propaga
+      // para que el caller la ignore en vez de pisar el estado con una respuesta obsoleta.
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw error;
+      }
       console.error(error);
       return { data: [], total: 0 };
     }
@@ -344,9 +350,10 @@ export const api = {
     }
   },
 
-  getTaxonomies: async () => {
+  getTaxonomies: async (kingdom?: string) => {
     try {
-      const res = await fetch(`${API_URL}/taxonomies`);
+      const qs = kingdom ? `?kingdom=${encodeURIComponent(kingdom)}` : "";
+      const res = await fetch(`${API_URL}/taxonomies${qs}`);
       if (!res.ok) throw new Error("Error fetching taxonomies");
       return await res.json();
     } catch (err) {

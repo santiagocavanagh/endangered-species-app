@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
+import { asyncHandler } from "../utils/async-handler.util";
 import { SpeciesService } from "../services/species.service";
 import { SpeciesMapper } from "../mappers/species.mapper";
 import {
@@ -10,91 +11,49 @@ import {
 const service = new SpeciesService();
 
 export class SpeciesController {
-  static async getAll(
-    req: Request<{}, {}, {}, SpeciesQuery>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
+  static getAll = asyncHandler(
+    async (req: Request<{}, {}, {}, SpeciesQuery>, res: Response) => {
       const result = await service.getAll(req.query);
+      res.json({ data: result.data.map(SpeciesMapper), meta: result.meta });
+    },
+  );
 
-      return res.json({
-        data: result.data.map(SpeciesMapper),
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  static getCritical = asyncHandler(async (_req: Request, res: Response) => {
+    res.json((await service.getCritical()).map(SpeciesMapper));
+  });
 
-  static async getCritical(_req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = await service.getCritical();
-      return res.json(data.map(SpeciesMapper));
-    } catch (error) {
-      next(error);
-    }
-  }
+  static getRescued = asyncHandler(async (_req: Request, res: Response) => {
+    res.json((await service.getRescued()).map(SpeciesMapper));
+  });
 
-  static async getRescued(_req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = await service.getRescued();
-      return res.json(data.map(SpeciesMapper));
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getOne(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
+  static getOne = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
       const species = await service.getOne(Number(req.params.id));
-      return res.json(SpeciesMapper(species));
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.json(SpeciesMapper(species));
+    },
+  );
 
-  static async create(
-    req: Request<{}, {}, CreateSpeciesBody>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
+  static create = asyncHandler(
+    async (req: Request<{}, {}, CreateSpeciesBody>, res: Response) => {
       const created = await service.create(req.body);
-      return res.status(201).json(SpeciesMapper(created));
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.status(201).json(SpeciesMapper(created));
+    },
+  );
 
-  static async update(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const body = req.body as UpdateSpeciesBody;
-      const updated = await service.update(Number(req.params.id), body);
-      return res.json(SpeciesMapper(updated));
-    } catch (error) {
-      next(error);
-    }
-  }
+  static update = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
+      const updated = await service.update(
+        Number(req.params.id),
+        req.body as UpdateSpeciesBody,
+      );
+      res.json(SpeciesMapper(updated));
+    },
+  );
 
-  static async delete(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
+  static delete = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
       await service.delete(Number(req.params.id));
-      return res.status(204).send();
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.status(204).send();
+    },
+  );
 }

@@ -1,25 +1,17 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
+import { asyncHandler } from "../utils/async-handler.util";
 import { TaxonomyService } from "../services/taxonomy.service";
 
 const service = new TaxonomyService();
 
 export const TaxonomyController = {
-  getAll: async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await service.getAll();
-      return res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  },
+  getAll: asyncHandler(async (req: Request, res: Response) => {
+    const kingdom =
+      typeof req.query.kingdom === "string" ? req.query.kingdom : undefined;
+    res.json(await service.getAll(kingdom));
+  }),
 
-  getOne: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = Number(req.params.id);
-      const data = await service.getOne(id);
-      return res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  },
+  getOne: asyncHandler(async (req: Request, res: Response) => {
+    res.json(await service.getOne(Number(req.params.id)));
+  }),
 };

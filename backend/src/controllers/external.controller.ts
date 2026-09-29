@@ -1,62 +1,39 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
+import { asyncHandler } from "../utils/async-handler.util";
 import { ExternalService } from "../services/external.service";
 
 const service = new ExternalService();
 
 export class ExternalController {
-  static async syncSpeciesReferences(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const speciesId = Number(req.params.id);
-      const result = await service.syncSpeciesReferences(speciesId);
-      return res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
+  static syncSpeciesReferences = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
+      const result = await service.syncSpeciesReferences(Number(req.params.id));
+      res.json(result);
+    },
+  );
 
-  static async getSpeciesDistribution(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const speciesId = Number(req.params.id);
-      const result = await service.getSpeciesDistribution(speciesId);
-      return res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
+  static getSpeciesDistribution = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
+      const result = await service.getSpeciesDistribution(
+        Number(req.params.id),
+      );
+      res.json(result);
+    },
+  );
 
-  static async getSpeciesRange(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const speciesId = Number(req.params.id);
-      const result = await service.getSpeciesRange(speciesId);
-      return res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
+  static getSpeciesRange = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
+      const result = await service.getSpeciesRange(Number(req.params.id));
+      res.json(result);
+    },
+  );
 
-  static async getSpeciesOccurrencePoints(
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) {
-    try {
-      const speciesId = Number(req.params.id);
-      const result = await service.getSpeciesOccurrencePoints(speciesId);
-      return res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
+  static getSpeciesOccurrencePoints = asyncHandler(
+    async (req: Request<{ id: string }>, res: Response) => {
+      const result = await service.getSpeciesOccurrencePoints(
+        Number(req.params.id),
+      );
+      res.json(result);
+    },
+  );
 }

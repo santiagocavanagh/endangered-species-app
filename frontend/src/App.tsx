@@ -78,6 +78,9 @@ export default function App() {
     undefined,
   );
   const loadingRef = useRef(false);
+  // Controla la request de listado en curso: al cambiar de filtro/categoría se
+  // cancela la anterior para que una respuesta lenta y obsoleta no pise el estado.
+  const listAbortRef = useRef<AbortController | null>(null);
 
   const categoryToKingdom: Record<string, string> = {
     animal: "animalia",
@@ -88,22 +91,29 @@ export default function App() {
   // Carga inicial y reset
   const resetAndLoad = useCallback(
     async (f: Filters, cat: string) => {
+      listAbortRef.current?.abort();
+      const controller = new AbortController();
+      listAbortRef.current = controller;
+
       setIsLoading(true);
       setPage(1);
       setAllSpecies([]);
       try {
-        const speciesPromise = api.fetchSpecies({
-          kingdom: categoryToKingdom[cat],
-          orderName: f.orderName !== "all" ? f.orderName : undefined,
-          family: f.family !== "all" ? f.family : undefined,
-          genus: f.genus !== "all" ? f.genus : undefined,
-          status: f.status !== "all" ? f.status : undefined,
-          search: f.search.trim() || undefined,
-          region: f.region !== "all" ? f.region : undefined,
-          habitat: f.habitat !== "all" ? f.habitat : undefined,
-          page: 1,
-          limit: LIMIT,
-        });
+        const speciesPromise = api.fetchSpecies(
+          {
+            kingdom: categoryToKingdom[cat],
+            orderName: f.orderName !== "all" ? f.orderName : undefined,
+            family: f.family !== "all" ? f.family : undefined,
+            genus: f.genus !== "all" ? f.genus : undefined,
+            status: f.status !== "all" ? f.status : undefined,
+            search: f.search.trim() || undefined,
+            region: f.region !== "all" ? f.region : undefined,
+            habitat: f.habitat !== "all" ? f.habitat : undefined,
+            page: 1,
+            limit: LIMIT,
+          },
+          controller.signal,
+        );
 
         const favoritesPromise = user
           ? api.getFavorites()
@@ -126,11 +136,13 @@ export default function App() {
           setFavoriteSpecies([]);
         }
       } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
         console.error(e);
         setFavorites(new Set());
         setFavoriteSpecies([]);
       } finally {
-        setIsLoading(false);
+        // Solo la request más reciente puede apagar el loading.
+        if (listAbortRef.current === controller) setIsLoading(false);
       }
     },
     [user],

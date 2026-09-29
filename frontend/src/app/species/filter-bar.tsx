@@ -33,6 +33,15 @@ interface TaxonomyOption {
   genus: string | null;
 }
 
+// Comparador simple (sin colación ICU): las listas de taxonomía pueden tener miles
+// de entradas y localeCompare es órdenes de magnitud más lento que una comparación directa.
+const compareLabel = (a: { label: string }, b: { label: string }) =>
+  a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
+
+// Tope de opciones renderizadas por dropdown: con miles de géneros/familias por reino,
+// montar un <SelectItem> por cada uno bloquea el hilo principal varios segundos.
+const MAX_SELECT_OPTIONS = 300;
+
 const categoryToKingdom: Record<FilterBarProps["category"], string> = {
   animal: "animalia",
   planta: "plantae",
@@ -50,8 +59,9 @@ export function FilterBar({
   >([{ value: "all", label: "Todas las regiones" }]);
 
   useEffect(() => {
+    const kingdom = categoryToKingdom[category];
     api
-      .getTaxonomies()
+      .getTaxonomies(kingdom)
       .then((res: any) => {
         const data: TaxonomyOption[] = Array.isArray(res)
           ? res
@@ -59,12 +69,7 @@ export function FilterBar({
             ? res.data
             : [];
 
-        const kingdom = categoryToKingdom[category];
-        setTaxonomyOptions(
-          data.filter(
-            (taxonomy) => String(taxonomy.kingdom).toLowerCase() === kingdom,
-          ),
-        );
+        setTaxonomyOptions(data);
       })
       .catch((error) => {
         console.error("Error cargando taxonomías:", error);
@@ -163,7 +168,7 @@ export function FilterBar({
             { value: taxonomy.orderName!, label: taxonomy.orderName! },
           ]),
       ).values(),
-    ).sort((a, b) => a.label.localeCompare(b.label));
+    ).sort(compareLabel);
 
     return [{ value: "all", label: "Todos los órdenes" }, ...values];
   }, [taxonomyOptions]);
@@ -184,7 +189,7 @@ export function FilterBar({
             { value: taxonomy.family!, label: taxonomy.family! },
           ]),
       ).values(),
-    ).sort((a, b) => a.label.localeCompare(b.label));
+    ).sort(compareLabel);
 
     return [{ value: "all", label: "Todas las familias" }, ...values];
   }, [taxonomyOptions, filters.orderName]);
@@ -208,7 +213,7 @@ export function FilterBar({
             { value: taxonomy.genus!, label: taxonomy.genus! },
           ]),
       ).values(),
-    ).sort((a, b) => a.label.localeCompare(b.label));
+    ).sort(compareLabel);
 
     return [{ value: "all", label: "Todos los géneros" }, ...values];
   }, [taxonomyOptions, filters.orderName, filters.family]);
@@ -270,7 +275,7 @@ export function FilterBar({
                 <SelectValue placeholder="Nivel 1: orden" />
               </SelectTrigger>
               <SelectContent>
-                {orderOptions.map((option) => (
+                {orderOptions.slice(0, MAX_SELECT_OPTIONS).map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -286,7 +291,7 @@ export function FilterBar({
                 <SelectValue placeholder="Nivel 2: familia" />
               </SelectTrigger>
               <SelectContent>
-                {familyOptions.map((option) => (
+                {familyOptions.slice(0, MAX_SELECT_OPTIONS).map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -302,7 +307,7 @@ export function FilterBar({
                 <SelectValue placeholder="Nivel 3: género" />
               </SelectTrigger>
               <SelectContent>
-                {genusOptions.map((option) => (
+                {genusOptions.slice(0, MAX_SELECT_OPTIONS).map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
