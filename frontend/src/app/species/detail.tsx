@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import {
   ArrowLeft,
   Star,
@@ -22,7 +22,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { api, type SpeciesDistribution } from "../../services/api";
 import { SpeciesCard, type Species } from "./card";
 import { useAuth } from "../../context/auth-context";
-import { DistributionMap } from "./distribution/distribution-map";
+// Leaflet y sus plugins se cargan bajo demanda para no inflar el bundle principal.
+const DistributionMap = lazy(() =>
+  import("./distribution/distribution-map").then((m) => ({
+    default: m.DistributionMap,
+  })),
+);
 
 interface SpeciesDetailPageProps {
   speciesId: number;
@@ -361,11 +366,19 @@ export function SpeciesDetailPage({
               </div>
             </article>
 
-            <DistributionMap
-              speciesId={speciesId}
-              distribution={distribution}
-              loading={distributionLoading}
-            />
+            <Suspense
+              fallback={
+                <div className="w-full aspect-square rounded-xl border bg-gray-50 flex items-center justify-center">
+                  <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
+              <DistributionMap
+                speciesId={speciesId}
+                distribution={distribution}
+                loading={distributionLoading}
+              />
+            </Suspense>
           </div>
         </section>
 
