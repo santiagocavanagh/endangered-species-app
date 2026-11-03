@@ -52,15 +52,16 @@ frontend/.vite/
 *.tmp
 *.temp
 ormconfig.json
+endangered_species_app.png
 
 # --- SCRIPTS ---
 scripts/
 seeds/
 
+# --- DB IMPORT ---
+dump-endangered_species_app.sql
+
 # --- REPORTES ---
 /REPORTES
 *ANALISIS_ERRORES_VULNERABILIDADES.md
-ANALISIS_ERRORES_VULNERABILIDADES.md
 AUDITORIA_EXHAUSTIVA_26_ENERO.md
-DETALLE_CRITICA2_VALIDACION.md
-EXPLICACION_TYPESCRIPT_E_ISADMIN.md

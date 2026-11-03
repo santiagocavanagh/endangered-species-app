@@ -1,6 +1,7 @@
 # 🌿 EcoGuard — Endangered Species App
 
-A full-stack web application for tracking, managing, and raising awareness about endangered species worldwide. Built with a modern TypeScript stack, JWT authentication, and data sourced from the IUCN Red List API.
+A full-stack web application for tracking, managing, and raising awareness about endangered species worldwide.
+Built with a modern TypeScript stack, JWT authentication, and data sourced from the IUCN Red List API.
 
 ---
 
@@ -30,7 +31,7 @@ A full-stack web application for tracking, managing, and raising awareness about
 
 erDiagram
 users ||--o{ favorites : "tiene"
-species ||--o{ favorites : "es marcada en"
+species ||--o{ favorites : "es marcada en X especie"
 species ||--o{ species_media : "contiene"
 species ||--o{ population_census : "registra"
 species ||--o{ status_history : "historial"
@@ -190,7 +191,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
-DB_NAME=endangered_species
+DB_NAME=endangered_species_app
 
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRATION=24h
