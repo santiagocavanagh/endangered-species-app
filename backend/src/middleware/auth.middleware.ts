@@ -6,6 +6,25 @@ import { UserRole } from "../entities/user.entity";
 import { UnauthorizedError, ForbiddenError } from "../errors/http.error";
 import { AppDataSource } from "../config/data.source";
 import { User } from "../entities/user.entity";
+import { AUTH_COOKIE_NAME } from "../constants/auth.constant";
+import { parseCookies } from "../utils/cookie.util";
+
+// Prioriza la cookie httpOnly (flujo del front web, no accesible por JS) y admite
+// el header Authorization como alternativa para clientes no-navegador (scripts, Postman).
+function extractToken(req: AuthRequest): string | null {
+  const cookies = parseCookies(req.headers.cookie);
+  const cookieToken = cookies[AUTH_COOKIE_NAME];
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+
+  return null;
+}
 
 function toUnixSeconds(value: Date | string | null | undefined): number {
   if (!value) {
@@ -37,16 +56,10 @@ export const authenticateToken = async (
   const userRepo = AppDataSource.getRepository(User);
 
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader?.startsWith("Bearer ")) {
-      throw new UnauthorizedError("Token requerido");
-    }
-
-    const token = authHeader.slice(7);
+    const token = extractToken(req);
 
     if (!token) {
-      throw new UnauthorizedError("Token mal formado");
+      throw new UnauthorizedError("Token requerido");
     }
 
     const decoded = jwt.verify(token, ENV.JWT_SECRET);

@@ -34,7 +34,7 @@ export class SpeciesMedia {
     enum: MediaType,
     default: MediaType.IMAGE,
   })
-  mediaType: string;
+  mediaType: MediaType;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   credit: string | null;

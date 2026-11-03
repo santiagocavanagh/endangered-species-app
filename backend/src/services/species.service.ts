@@ -3,8 +3,10 @@ import { AppDataSource } from "../config/data.source";
 import { Species } from "../entities/species.entity";
 import { Region } from "../entities/region.entity";
 import { PopulationCensus } from "../entities/population-census.entity";
+import { StatusHistory } from "../entities/status-history.entity";
+import { ConservationStatus } from "../constants/species.constant";
 import { Taxonomy } from "../entities/taxonomy.entity";
-import { SpeciesMedia } from "../entities/species-media.entity";
+import { SpeciesMedia, MediaType } from "../entities/species-media.entity";
 import {
   DataSource as DataSourceEntity,
   DataSourceType,
@@ -259,7 +261,7 @@ export class SpeciesService {
           const mediaRepo = manager.getRepository(SpeciesMedia);
           await mediaRepo.save({
             mediaUrl: data.imageUrl,
-            mediaType: "image",
+            mediaType: MediaType.IMAGE,
             species: created,
             credit: null,
             license: null,
@@ -314,6 +316,7 @@ export class SpeciesService {
       data.commonName !== undefined
         ? (data.commonName ?? null)
         : species.commonName;
+    const previousStatus = species.iucnStatus;
     species.iucnStatus = data.iucnStatus ?? species.iucnStatus;
     species.description =
       data.description !== undefined
@@ -327,6 +330,16 @@ export class SpeciesService {
         const speciesRepo = manager.getRepository(Species);
         const updated = await speciesRepo.save(species);
 
+        if (data.iucnStatus && data.iucnStatus !== previousStatus) {
+          await this.createStatusHistory(
+            manager,
+            updated,
+            previousStatus,
+            data.iucnStatus,
+            data.sourceId,
+          );
+        }
+
         if (data.population !== undefined) {
           await this.createPopulationCensus(manager, updated, data);
         }
@@ -338,7 +351,7 @@ export class SpeciesService {
           if (data.imageUrl) {
             await mediaRepo.save({
               mediaUrl: data.imageUrl,
-              mediaType: "image",
+              mediaType: MediaType.IMAGE,
               species: updated,
               credit: null,
               license: null,
@@ -436,5 +449,25 @@ export class SpeciesService {
     }
 
     return defaultSource;
+  }
+
+  // Registra el cambio de estado IUCN para conservar la trazabilidad histórica de la especie.
+  private async createStatusHistory(
+    manager: EntityManager,
+    species: Species,
+    oldStatus: string,
+    newStatus: string,
+    sourceId?: number,
+  ) {
+    const historyRepo = manager.getRepository(StatusHistory);
+    const source = await this.resolveSource(manager, sourceId);
+
+    await historyRepo.save({
+      species,
+      oldStatus: oldStatus as ConservationStatus,
+      newStatus: newStatus as ConservationStatus,
+      changedAt: new Date().toISOString().split("T")[0],
+      source,
+    });
   }
 }

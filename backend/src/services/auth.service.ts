@@ -124,6 +124,21 @@ export class AuthService {
     };
   }
 
+  // Sesión actual: usada por /auth/me para rehidratar al usuario sin exponer el JWT al JS del cliente.
+  async me(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+
+    if (!user) {
+      throw new NotFoundError("Usuario no encontrado");
+    }
+
+    return {
+      email: user.email,
+      role: user.role,
+      name: user.name ?? null,
+    };
+  }
+
   //Update
   async updateProfile(userId: number, data: UpdateProfileBody) {
     const user = await this.userRepo.findOneBy({ id: userId });

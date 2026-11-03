@@ -64,16 +64,11 @@ export interface SpeciesOccurrencePoints {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
-const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("token");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+// La sesión viaja en una cookie httpOnly (ver AuthProvider + credentials:"include" abajo),
+// nunca en localStorage; este helper solo fija el content-type de las mutaciones.
+const getAuthHeaders = (): Record<string, string> => ({
+  "Content-Type": "application/json",
+});
 
 const parseApiResponse = async (response: Response) => {
   const body = await response.json().catch(() => null);
@@ -268,6 +263,7 @@ export const api = {
       const res = await fetch(`${API_URL}/species`, {
         method: "POST",
         headers: getAuthHeaders(),
+        credentials: "include",
         body: JSON.stringify(payload),
       });
       return await parseApiResponse(res);
@@ -327,6 +323,7 @@ export const api = {
       const res = await fetch(`${API_URL}/species/${id}`, {
         method: "PATCH",
         headers: getAuthHeaders(),
+        credentials: "include",
         body: JSON.stringify(payload),
       });
       return await parseApiResponse(res);
@@ -341,10 +338,11 @@ export const api = {
       const res = await fetch(`${API_URL}/species/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
+        credentials: "include",
       });
       if (res.status === 204) return { success: true };
       return await parseApiResponse(res);
-    } catch (error) {
+    } catch {
       return { error: "No se pudo eliminar" };
     }
   },
@@ -401,6 +399,7 @@ export const api = {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(credentials),
       });
       if (!res.ok) throw new Error("Credenciales incorrectas");
@@ -408,6 +407,35 @@ export const api = {
     } catch (error) {
       console.error(error);
       throw error;
+    }
+  },
+
+  // Cierra la sesión server-side: limpia la cookie httpOnly (el JS nunca pudo tocarla).
+  logout: async (): Promise<void> => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  },
+
+  // Rehidrata la sesión al montar la app a partir de la cookie httpOnly (no es posible
+  // decodificar el JWT en el cliente una vez que dejó de viajar en el body de /login).
+  me: async (): Promise<{
+    email: string;
+    role: string;
+    name: string | null;
+  } | null> => {
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (error) {
+      console.error(error);
+      return null;
     }
   },
 
@@ -420,11 +448,17 @@ export const api = {
     const response = await fetch(`${API_URL}/auth/update-profile`, {
       method: "PUT",
       headers,
+      credentials: "include",
       body: JSON.stringify(data),
     });
-    const result = await response.json();
+    const result = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(result.error || "Error al actualizar el perfil");
+      const message =
+        result?.errors?.[0]?.message ??
+        result?.message ??
+        result?.error ??
+        "Error al actualizar el perfil";
+      throw new Error(message);
     }
     return result;
   },
@@ -433,10 +467,14 @@ export const api = {
     try {
       const res = await fetch(`${API_URL}/favorites`, {
         headers: getAuthHeaders(),
+        credentials: "include",
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        return { error: data?.error ?? "No se pudieron cargar favoritos" };
+        return {
+          error:
+            data?.error ?? data?.message ?? "No se pudieron cargar favoritos",
+        };
       }
       if (!Array.isArray(data)) {
         return { error: "Respuesta de favoritos inválida" };
@@ -448,14 +486,18 @@ export const api = {
     }
   },
 
+  // parseApiResponse normaliza {message:...} (AppError/Zod) a {error:...}: sin esto, un
+  // fallo (401/400/404) se devolvía tal cual y el caller -que solo mira "res.error"- lo
+  // confundía con un éxito (el backend nunca persistía el favorito, pero la UI lo marcaba igual).
   addFavorite: async (speciesId: number): Promise<any> => {
     try {
       const res = await fetch(`${API_URL}/favorites/${speciesId}`, {
         method: "POST",
         headers: getAuthHeaders(),
+        credentials: "include",
       });
-      return await res.json();
-    } catch (error) {
+      return await parseApiResponse(res);
+    } catch {
       return { error: "No se pudo agregar a favoritos" };
     }
   },
@@ -465,9 +507,10 @@ export const api = {
       const res = await fetch(`${API_URL}/favorites/${speciesId}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
+        credentials: "include",
       });
-      return await res.json();
-    } catch (error) {
+      return await parseApiResponse(res);
+    } catch {
       return { error: "No se pudo quitar de favoritos" };
     }
   },

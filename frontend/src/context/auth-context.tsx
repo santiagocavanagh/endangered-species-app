@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { api } from "../services/api";
 
 interface User {
   email: string;
@@ -14,26 +15,9 @@ function normalizeRole(role: string | null | undefined): "admin" | "user" {
     : "user";
 }
 
-function parseJwtPayload(token: string | null): Record<string, unknown> | null {
-  try {
-    if (!token) return null;
-    const parts = token.split(".");
-    if (parts.length < 2) return null;
-
-    const payload = parts[1]
-      .replace(/-/g, "+")
-      .replace(/_/g, "/")
-      .padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
-
-    return JSON.parse(atob(payload)) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
 interface AuthContextType {
   user: User | null;
-  login: (token: string, role: string, email: string, name?: string) => void;
+  login: (role: string, email: string, name?: string | null) => void;
   logout: () => void;
   isAdmin: boolean;
 }
@@ -46,44 +30,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // El JWT vive en una cookie httpOnly (no accesible por JS), así que la sesión se
+  // restaura preguntándole al backend "¿quién soy?" en vez de decodificar un token local.
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const payload = parseJwtPayload(token);
-    const role = normalizeRole(
-      localStorage.getItem("userRole") ??
-        (typeof payload?.["role"] === "string" ? payload["role"] : null),
-    );
-    const email =
-      localStorage.getItem("userEmail") ??
-      (typeof payload?.["email"] === "string" ? payload["email"] : null);
-    const name = localStorage.getItem("userName");
+    let cancelled = false;
 
-    if (token && role && email) {
-      setUser({ email, role, name: name || undefined });
-      localStorage.setItem("userRole", role);
-      localStorage.setItem("userEmail", email);
-    }
-    setLoading(false);
+    api.me().then((data) => {
+      if (cancelled) return;
+      if (data) {
+        setUser({
+          email: data.email,
+          role: normalizeRole(data.role),
+          name: data.name ?? undefined,
+        });
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const login = (token: string, role: string, email: string, name?: string) => {
-    const normalizedRole = normalizeRole(role);
-    localStorage.setItem("token", token);
-    localStorage.setItem("userRole", normalizedRole);
-    localStorage.setItem("userEmail", email);
-
-    if (name) {
-      localStorage.setItem("userName", name);
-    } else {
-      localStorage.removeItem("userName");
-    }
-
-    setUser({ email, role: normalizedRole, name });
+  const login = (role: string, email: string, name?: string | null) => {
+    setUser({ email, role: normalizeRole(role), name: name ?? undefined });
   };
 
   const logout = () => {
-    localStorage.clear();
     setUser(null);
+    void api.logout();
   };
 
   return (

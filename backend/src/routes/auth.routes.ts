@@ -28,6 +28,10 @@ router.post(
   AuthController.login,
 );
 
+router.post("/logout", AuthController.logout);
+
+router.get("/me", authenticateToken, AuthController.me);
+
 router.put(
   "/update-profile",
   authenticateToken,

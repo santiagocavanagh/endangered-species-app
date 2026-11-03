@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { CONSERVATION_STATUSES } from "../constants/species.constant";
+import { idParamSchema } from "./common.schema";
 
-export const speciesIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
+export const speciesIdParamSchema = idParamSchema;
 
 export const speciesQuerySchema = z.object({
   taxonomy: z.string().optional(),

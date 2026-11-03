@@ -25,9 +25,9 @@ export function LoginModal({
     setLoading(true);
     try {
       const data = await api.login({ email, password });
-      login(data.token, data.role, data.email, data.name);
+      login(data.role, data.email, data.name);
       onClose();
-    } catch (err) {
+    } catch {
       toast.error("Credenciales incorrectas. Intentá de nuevo.");
     } finally {
       setLoading(false);

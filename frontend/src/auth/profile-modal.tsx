@@ -41,12 +41,7 @@ export function ProfileModal({
       });
       // Actualiza contexto con el nuevo nombre
       if (login) {
-        login(
-          localStorage.getItem("token") || "",
-          user!.role,
-          user!.email,
-          response.user.name,
-        );
+        login(user!.role, user!.email, response.user.name);
       }
       toast.success("¡Perfil actualizado con éxito!");
       setCurrentPassword("");

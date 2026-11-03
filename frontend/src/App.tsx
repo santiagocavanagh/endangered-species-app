@@ -318,26 +318,35 @@ export default function App() {
   };
 
   const toggleFavorite = async (id: number) => {
+    if (!user) {
+      toast.error("Iniciá sesión para guardar favoritos.");
+      return;
+    }
+
     if (favorites.has(id)) {
       const res = await api.removeFavorite(id);
-      if (!res.error) {
-        setFavorites((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-        setFavoriteSpecies((prev) =>
-          prev.filter((species) => species.id !== id),
-        );
+      if (res.error) {
+        toast.error(res.error);
+        return;
       }
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setFavoriteSpecies((prev) =>
+        prev.filter((species) => species.id !== id),
+      );
     } else {
       const res = await api.addFavorite(id);
-      if (!res.error) {
-        setFavorites((prev) => new Set(prev).add(id));
-        const addedSpecies = allSpecies.find((species) => species.id === id);
-        if (addedSpecies) {
-          setFavoriteSpecies((prev) => [...prev, addedSpecies]);
-        }
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setFavorites((prev) => new Set(prev).add(id));
+      const addedSpecies = allSpecies.find((species) => species.id === id);
+      if (addedSpecies) {
+        setFavoriteSpecies((prev) => [...prev, addedSpecies]);
       }
     }
   };

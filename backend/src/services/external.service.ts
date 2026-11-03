@@ -811,7 +811,7 @@ export class ExternalService {
         highQuality: false,
       });
     } catch {
-      simplified = hull;
+      // turf.simplify falló: "simplified" ya vale "hull" desde la inicialización, no hace falta reasignar.
     }
 
     const geometry = simplified.geometry;

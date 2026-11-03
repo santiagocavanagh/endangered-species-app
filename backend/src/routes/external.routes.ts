@@ -2,8 +2,12 @@ import { Router } from "express";
 import { ExternalController } from "../controllers/external.controller";
 import { limiter } from "../middleware/rate.limiter";
 import { authenticateToken, isAdmin } from "../middleware/auth.middleware";
-import { validateParams } from "../middleware/validate.middleware";
+import {
+  validateParams,
+  validateQuery,
+} from "../middleware/validate.middleware";
 import { speciesIdParamSchema } from "../schemas/species.schema";
+import { externalBatchSyncQuerySchema } from "../schemas/external.schema";
 
 const router = Router();
 
@@ -14,6 +18,15 @@ router.post(
   isAdmin,
   validateParams(speciesIdParamSchema),
   ExternalController.syncSpeciesReferences,
+);
+
+router.post(
+  "/sync-batch",
+  limiter,
+  authenticateToken,
+  isAdmin,
+  validateQuery(externalBatchSyncQuerySchema),
+  ExternalController.syncBatch,
 );
 
 router.get(

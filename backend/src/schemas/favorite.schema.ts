@@ -1,5 +1,3 @@
-import { z } from "zod";
+import { idParamSchema } from "./common.schema";
 
-export const favoriteParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
+export const favoriteParamsSchema = idParamSchema;

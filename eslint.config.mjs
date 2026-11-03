@@ -7,6 +7,17 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // Convención del repo: parámetros/bindings con prefijo "_" son intencionalmente
+    // ignorados (ej. el "next" de un error-handler de Express, que exige 4 args fijos
+    // aunque no lo invoque).
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
     files: ["backend/**/*.ts"],
     languageOptions: { globals: globals.node },
   },

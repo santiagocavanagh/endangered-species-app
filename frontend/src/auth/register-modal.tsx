@@ -27,7 +27,7 @@ export function RegisterModal({
       await api.register({ email, password });
       // Auto-login after successful registration
       const loginData = await api.login({ email, password });
-      login(loginData.token, loginData.role, loginData.email, loginData.name);
+      login(loginData.role, loginData.email, loginData.name);
       toast.success("¡Cuenta creada exitosamente! Bienvenido a EcoGuard.");
       onClose();
     } catch (err) {
