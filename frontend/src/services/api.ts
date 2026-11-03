@@ -14,7 +14,6 @@ export interface SpeciesDistribution {
     minLng: number;
     maxLng: number;
   } | null;
-  tileUrlTemplate: string | null;
   attribution: string | null;
   lastValidatedAt: string | null;
   reason: string | null;

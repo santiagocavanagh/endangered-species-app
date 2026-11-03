@@ -17,11 +17,12 @@ import {
   resolveLayerForZoom,
 } from "./distribution.types";
 
-const WORLD_CENTER: [number, number] = [10, 0];
 const WORLD_ZOOM = 1;
 // Espera a que el zoom se estabilice antes de cambiar de capa: evita montar/desmontar
 // RangeLayer/ClusterLayer en cada paso cuando el usuario hace zoom muchas veces seguidas.
 const ZOOM_DEBOUNCE_MS = 300;
+// Debe superar DISTRIBUTION_ZOOM_BREAKPOINTS.pointsMinZoom; de lo contrario la capa de puntos es inalcanzable.
+const MAX_MAP_ZOOM = 16;
 const ESRI_ATTRIBUTION = "Esri, HERE, Garmin, USGS, NGA";
 
 interface DistributionMapProps {
@@ -63,7 +64,7 @@ export function DistributionMap({
               zoomSnap={0.5}
               zoomDelta={0.5}
               minZoom={1}
-              maxZoom={8}
+              maxZoom={MAX_MAP_ZOOM}
               maxBounds={[
                 [-90, -180],
                 [90, 180],

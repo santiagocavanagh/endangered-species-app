@@ -99,7 +99,6 @@ export interface SpeciesDistributionDTO {
   hasData: boolean;
   occurrenceCount: number | null;
   bbox: GbifBoundingBox | null;
-  tileUrlTemplate: string | null;
   attribution: string | null;
   lastValidatedAt: string | null;
   reason: string | null;
@@ -208,7 +207,6 @@ export class ExternalService {
         hasData: false,
         occurrenceCount: null,
         bbox: null,
-        tileUrlTemplate: null,
         attribution: null,
         lastValidatedAt: null,
         reason: "no_gbif_reference",
@@ -236,9 +234,6 @@ export class ExternalService {
       hasData,
       occurrenceCount: coverage?.occurrenceCount ?? null,
       bbox: coverage?.bbox ?? null,
-      tileUrlTemplate: hasData
-        ? `${ENV.GBIF_API_BASE}/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?taxonKey=${gbifRef.externalId}`
-        : null,
       attribution: hasData ? "Datos de distribución: GBIF.org" : null,
       lastValidatedAt: coverage?.validatedAt ?? null,
       reason: hasData ? null : "no_georeferenced_occurrences",
