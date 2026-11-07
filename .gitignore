@@ -52,13 +52,13 @@ frontend/.vite/
 *.tmp
 *.temp
 ormconfig.json
-endangered_species_app.png
 
 # --- SCRIPTS ---
 scripts/
 seeds/
 
 # --- DB IMPORT ---
+endangered_species_app.png
 dump-endangered_species_app.sql
 
 # --- REPORTES ---
